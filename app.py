@@ -4,7 +4,7 @@ import os
 # Try to import Google GenAI, if not available, use fallback
 try:
     from dotenv import load_dotenv
-    import google.generativeai as genai
+    import google.genai as genai
     
     # Advanced Features Imports
     from textblob import TextBlob
@@ -42,8 +42,8 @@ try:
         AI_AVAILABLE = False
         ADVANCED_FEATURES = False
     else:
-        # Configure Google GenAI
-        genai.configure(api_key=api_key)
+        # Configure Google GenAI client
+        genai_client = genai.Client(api_key=api_key)
         AI_AVAILABLE = True
         
         # Initialize advanced features
@@ -256,8 +256,42 @@ def get_ai_response(user_message, context=""):
         # Combine system prompt with user message for GenAI
         full_prompt = f"{system_prompt}\n\nUser Question: {translated_message}\n\nAssistant:"
         
-        model = genai.GenerativeModel('gemini-pro')
-        response = model.generate_content(full_prompt)
+        # Try multiple models with fallback and retry logic
+        models_to_try = [
+            'gemini-2.5-flash',
+            'gemini-2.0-flash', 
+            'gemini-flash-latest',
+            'gemini-2.0-flash-lite'
+        ]
+        
+        response = None
+        last_error = None
+        
+        for model_name in models_to_try:
+            for attempt in range(2):  # Try each model twice
+                try:
+                    response = genai_client.models.generate_content(
+                        model=model_name,
+                        contents=full_prompt
+                    )
+                    break  # Success, exit retry loop
+                except Exception as e:
+                    last_error = e
+                    if "overloaded" in str(e).lower() or "503" in str(e):
+                        # Wait a bit before retry
+                        import time
+                        time.sleep(1)
+                        continue
+                    else:
+                        # Different error, try next model
+                        break
+            
+            if response:
+                break  # Success, exit model loop
+        
+        if not response:
+            # All models failed, raise the last error
+            raise last_error
         
         # Translate response back if needed
         response_text = response.text
@@ -267,7 +301,29 @@ def get_ai_response(user_message, context=""):
         return response_text
     except Exception as e:
         error_msg = str(e)
-        if "quota" in error_msg.lower() or "billing" in error_msg.lower():
+        if "overloaded" in error_msg.lower() or "503" in error_msg:
+            # Provide a helpful fallback response when models are overloaded
+            fallback_responses = {
+                "excited": "That's wonderful to hear! 🎉 Your enthusiasm is exactly what employers love to see. Let me help you channel that excitement into your job search.",
+                "nervous": "It's completely normal to feel nervous about job applications. Take a deep breath - I'm here to guide you through the process step by step.",
+                "question": "I'd love to help you with that! While our AI is temporarily busy, I can still assist you with job applications, resume tips, and career guidance.",
+                "default": "I can see you're ready to get started! 🚀 While our AI assistant is temporarily overloaded, I can still help you with job applications and career questions using our structured screening process."
+            }
+            
+            # Simple keyword matching for better responses
+            user_lower = user_message.lower()
+            if any(word in user_lower for word in ["excited", "happy", "great", "awesome"]):
+                fallback = fallback_responses["excited"]
+            elif any(word in user_lower for word in ["nervous", "worried", "scared", "anxious"]):
+                fallback = fallback_responses["nervous"]
+            elif "?" in user_message:
+                fallback = fallback_responses["question"]
+            else:
+                fallback = fallback_responses["default"]
+            
+            return f"{fallback}\n\n💡 **Tip**: You can start our job screening process by typing 'start screening' or just tell me about yourself!"
+            
+        elif "quota" in error_msg.lower() or "billing" in error_msg.lower():
             return "I'm a hiring assistant! I can help you with job applications and career questions. However, the AI service is currently unavailable due to quota limits. Please check your Google Cloud billing settings or contact support."
         elif "invalid_api_key" in error_msg.lower() or "401" in error_msg or "403" in error_msg:
             return "I'm a hiring assistant! The Google API key appears to be invalid. Please check your API key at https://console.cloud.google.com/apis/credentials and update the .env file."
