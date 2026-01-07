@@ -58,7 +58,7 @@ try:
         # Test API connection (but don't fail if quota exceeded)
         try:
             test_response = genai_client.models.generate_content(
-                model='gemini-2.0-flash',  # Try a different model first
+                model='gemini-flash-latest',  # Use the working model
                 contents="Test"
             )
             print("✅ API connection test successful!")
@@ -145,104 +145,237 @@ TECH_QUESTIONS = {
 }
 
 # Advanced Features Functions
+def detect_emotions(text):
+    """Detect specific emotions in text"""
+    emotions = []
+    text_lower = text.lower()
+    
+    # Emotion keywords mapping
+    emotion_keywords = {
+        "excited": ["excited", "thrilled", "enthusiastic", "eager", "pumped", "amazing", "fantastic"],
+        "nervous": ["nervous", "anxious", "worried", "scared", "concerned", "afraid", "stressed"],
+        "confident": ["confident", "sure", "ready", "prepared", "capable", "skilled"],
+        "frustrated": ["frustrated", "annoyed", "upset", "disappointed", "angry"],
+        "hopeful": ["hopeful", "optimistic", "positive", "looking forward", "expecting"],
+        "grateful": ["grateful", "thankful", "appreciate", "blessed", "lucky"]
+    }
+    
+    for emotion, keywords in emotion_keywords.items():
+        if any(keyword in text_lower for keyword in keywords):
+            emotions.append(emotion)
+    
+    return emotions
+
 def analyze_sentiment(text):
-    """Analyze sentiment of user response"""
+    """Enhanced sentiment analysis of user response"""
     if not ADVANCED_FEATURES:
-        return {"polarity": 0, "subjectivity": 0, "sentiment": "neutral"}
+        return {"polarity": 0, "subjectivity": 0, "sentiment": "neutral", "confidence": 0}
     
     try:
         blob = TextBlob(text)
         polarity = blob.sentiment.polarity
         subjectivity = blob.sentiment.subjectivity
         
-        if polarity > 0.1:
+        # Enhanced sentiment classification
+        if polarity > 0.3:
+            sentiment = "very positive"
+            confidence = min(polarity * 100, 95)
+        elif polarity > 0.1:
             sentiment = "positive"
+            confidence = polarity * 80
+        elif polarity < -0.3:
+            sentiment = "very negative"
+            confidence = min(abs(polarity) * 100, 95)
         elif polarity < -0.1:
             sentiment = "negative"
+            confidence = abs(polarity) * 80
         else:
             sentiment = "neutral"
+            confidence = 50
             
+        # Detect specific emotions
+        emotions = detect_emotions(text)
+        
         return {
             "polarity": polarity,
             "subjectivity": subjectivity,
-            "sentiment": sentiment
+            "sentiment": sentiment,
+            "confidence": round(confidence, 1),
+            "emotions": emotions
         }
     except:
-        return {"polarity": 0, "subjectivity": 0, "sentiment": "neutral"}
+        return {"polarity": 0, "subjectivity": 0, "sentiment": "neutral", "confidence": 0, "emotions": []}
 
 def detect_language(text):
-    """Detect language of user input"""
+    """Enhanced language detection with confidence"""
     if not ADVANCED_FEATURES:
-        return "en"
+        return {"language": "en", "confidence": 100}
     
     try:
-        return detect(text)
+        from langdetect import detect, detect_langs
+        
+        # Get language with confidence
+        detected_lang = detect(text)
+        lang_probs = detect_langs(text)
+        
+        # Find confidence for detected language
+        confidence = 0
+        for lang_prob in lang_probs:
+            if lang_prob.lang == detected_lang:
+                confidence = round(lang_prob.prob * 100, 1)
+                break
+        
+        return {
+            "language": detected_lang,
+            "confidence": confidence,
+            "all_languages": [(lp.lang, round(lp.prob * 100, 1)) for lp in lang_probs[:3]]
+        }
     except:
-        return "en"
+        return {"language": "en", "confidence": 100, "all_languages": [("en", 100)]}
 
 def translate_text(text, target_lang="en"):
-    """Translate text to target language - simplified version"""
+    """Enhanced translation with multiple language support"""
     if not ADVANCED_FEATURES:
         return text
     
     try:
-        if detect_language(text) == target_lang:
+        detected = detect_language(text)
+        source_lang = detected["language"] if isinstance(detected, dict) else detected
+        
+        if source_lang == target_lang:
             return text
         
-        # Simple translation fallback - for demo purposes
-        # In production, you would use a proper translation service
-        basic_translations = {
+        # Enhanced translation dictionary
+        translations = {
             'hi': {
-                'Hello': 'नमस्ते',
-                'Thank you': 'धन्यवाद',
-                'Welcome': 'स्वागत है',
-                'Good': 'अच्छा',
-                'Great': 'बहुत बढ़िया'
+                # Greetings
+                'Hello': 'नमस्ते', 'Hi': 'हाय', 'Good morning': 'सुप्रभात',
+                'Good evening': 'शुभ संध्या', 'Welcome': 'स्वागत है',
+                
+                # Common phrases
+                'Thank you': 'धन्यवाद', 'Please': 'कृपया', 'Yes': 'हाँ', 'No': 'नहीं',
+                'Good': 'अच्छा', 'Great': 'बहुत बढ़िया', 'Excellent': 'उत्कृष्ट',
+                
+                # Job-related terms
+                'Job': 'नौकरी', 'Work': 'काम', 'Experience': 'अनुभव',
+                'Skills': 'कौशल', 'Interview': 'साक्षात्कार', 'Application': 'आवेदन',
+                'Resume': 'बायोडाटा', 'Career': 'करियर', 'Position': 'पद',
+                
+                # Emotions
+                'Excited': 'उत्साहित', 'Nervous': 'घबराया हुआ', 'Happy': 'खुश',
+                'Confident': 'आत्मविश्वासी', 'Ready': 'तैयार'
             },
             'es': {
-                'Hello': 'Hola',
-                'Thank you': 'Gracias',
-                'Welcome': 'Bienvenido',
-                'Good': 'Bueno',
-                'Great': 'Excelente'
+                # Greetings
+                'Hello': 'Hola', 'Hi': 'Hola', 'Good morning': 'Buenos días',
+                'Good evening': 'Buenas tardes', 'Welcome': 'Bienvenido',
+                
+                # Common phrases
+                'Thank you': 'Gracias', 'Please': 'Por favor', 'Yes': 'Sí', 'No': 'No',
+                'Good': 'Bueno', 'Great': 'Excelente', 'Excellent': 'Excelente',
+                
+                # Job-related terms
+                'Job': 'Trabajo', 'Work': 'Trabajo', 'Experience': 'Experiencia',
+                'Skills': 'Habilidades', 'Interview': 'Entrevista', 'Application': 'Aplicación',
+                'Resume': 'Currículum', 'Career': 'Carrera', 'Position': 'Posición'
+            },
+            'fr': {
+                # Greetings
+                'Hello': 'Bonjour', 'Hi': 'Salut', 'Good morning': 'Bonjour',
+                'Good evening': 'Bonsoir', 'Welcome': 'Bienvenue',
+                
+                # Common phrases
+                'Thank you': 'Merci', 'Please': 'S\'il vous plaît', 'Yes': 'Oui', 'No': 'Non',
+                'Good': 'Bon', 'Great': 'Excellent', 'Excellent': 'Excellent',
+                
+                # Job-related terms
+                'Job': 'Emploi', 'Work': 'Travail', 'Experience': 'Expérience',
+                'Skills': 'Compétences', 'Interview': 'Entretien', 'Application': 'Candidature'
             }
         }
         
-        if target_lang in basic_translations:
-            for eng, translated in basic_translations[target_lang].items():
-                text = text.replace(eng, translated)
+        if target_lang in translations:
+            translated_text = text
+            for english, translated in translations[target_lang].items():
+                # Case-insensitive replacement
+                import re
+                pattern = re.compile(re.escape(english), re.IGNORECASE)
+                translated_text = pattern.sub(translated, translated_text)
+            return translated_text
         
         return text
     except Exception as e:
-        # Fallback: return original text if translation fails
         return text
 
-def get_personalized_response(base_response, user_name, sentiment_data, language="en"):
-    """Generate personalized response based on user data"""
+def get_personalized_response(base_response, user_data, sentiment_data, language_data):
+    """Generate highly personalized response based on user data and context"""
     if not ADVANCED_FEATURES:
         return base_response
     
     try:
-        # Add personalization based on sentiment
-        if sentiment_data["sentiment"] == "positive":
-            enthusiasm = "Great enthusiasm! "
-        elif sentiment_data["sentiment"] == "negative":
-            enthusiasm = "I understand this might be challenging. "
-        else:
-            enthusiasm = ""
+        personalized = base_response
+        user_name = user_data.get("Full Name", "")
         
-        # Add name personalization
-        if user_name and user_name != "":
-            personalized = f"{enthusiasm}Thank you, {user_name}! {base_response}"
-        else:
-            personalized = f"{enthusiasm}{base_response}"
+        # Name personalization
+        if user_name and user_name.strip():
+            first_name = user_name.split()[0]
+            personalized = f"Hi {first_name}! {personalized}"
         
-        # Translate if needed
-        if language != "en":
-            personalized = translate_text(personalized, language)
+        # Sentiment-based personalization
+        sentiment = sentiment_data.get("sentiment", "neutral")
+        emotions = sentiment_data.get("emotions", [])
+        
+        if sentiment == "very positive" or "excited" in emotions:
+            personalized = f"🎉 {personalized}"
+        elif sentiment == "positive" or "confident" in emotions:
+            personalized = f"😊 {personalized}"
+        elif sentiment == "negative" or "nervous" in emotions:
+            personalized = f"💪 Don't worry! {personalized}"
+        elif "frustrated" in emotions:
+            personalized = f"🤗 I understand your concerns. {personalized}"
+        
+        # Experience-based personalization
+        experience = user_data.get("Years of Experience", "")
+        if experience:
+            try:
+                years = float(str(experience).replace("years", "").replace("year", "").strip())
+                if years == 0:
+                    personalized += "\n\n💡 As a fresh graduate, focus on showcasing your projects and learning enthusiasm!"
+                elif years < 2:
+                    personalized += "\n\n🌱 Your early career experience is valuable - highlight your growth mindset!"
+                elif years < 5:
+                    personalized += "\n\n🚀 With your solid experience, you're in a great position for career advancement!"
+                elif years >= 5:
+                    personalized += "\n\n🏆 Your extensive experience makes you a strong candidate for senior roles!"
+            except:
+                pass
+        
+        # Tech stack personalization
+        tech_stack = user_data.get("Tech Stack", "")
+        if tech_stack:
+            tech_lower = tech_stack.lower()
+            if any(tech in tech_lower for tech in ["python", "javascript", "react", "node"]):
+                personalized += "\n\n💻 Great tech stack! These are highly in-demand skills."
+            elif any(tech in tech_lower for tech in ["java", "spring", "sql"]):
+                personalized += "\n\n🏢 Excellent enterprise technology skills!"
+            elif any(tech in tech_lower for tech in ["ai", "ml", "data", "analytics"]):
+                personalized += "\n\n🤖 AI/Data skills are the future - you're ahead of the curve!"
+        
+        # Language-based personalization
+        if isinstance(language_data, dict):
+            detected_lang = language_data.get("language", "en")
+            confidence = language_data.get("confidence", 100)
+            
+            if detected_lang == "hi" and confidence > 70:
+                personalized += "\n\n🇮🇳 मैं हिंदी में भी बात कर सकता हूँ!"
+            elif detected_lang == "es" and confidence > 70:
+                personalized += "\n\n🇪🇸 ¡También puedo ayudarte en español!"
+            elif detected_lang == "fr" and confidence > 70:
+                personalized += "\n\n🇫🇷 Je peux aussi vous aider en français!"
         
         return personalized
-    except:
+        
+    except Exception as e:
         return base_response
 
 def get_ai_response(user_message, context=""):
@@ -284,12 +417,12 @@ def get_ai_response(user_message, context=""):
         # Combine system prompt with user message for GenAI
         full_prompt = f"{system_prompt}\n\nUser Question: {translated_message}\n\nAssistant:"
         
-        # Use quota-aware model selection (free tier friendly)
+        # Use quota-aware model selection (prioritize working models)
         models_to_try = [
-            'gemini-2.0-flash',      # Try this first (might have separate quota)
-            'gemini-flash-latest',   # Generic latest model
+            'gemini-flash-latest',   # This one is working!
             'gemini-2.0-flash-lite', # Lighter version
-            'gemini-2.5-flash'       # Last resort (likely quota exceeded)
+            'gemini-2.0-flash',      # Might have quota issues
+            'gemini-2.5-flash'       # Backup
         ]
         
         response = None
@@ -581,37 +714,58 @@ def get_bot_response(user_input, state):
         if step < len(FIELDS):
             field = FIELDS[step]
             
-            # Advanced Features: Sentiment Analysis
+            # Advanced Features: Enhanced Sentiment & Language Analysis
             if ADVANCED_FEATURES and user_input.strip():
                 sentiment_data = analyze_sentiment(user_input)
-                detected_lang = detect_language(user_input)
+                language_data = detect_language(user_input)
                 
-                # Store sentiment and language data
+                # Store enhanced data
                 state[f"{field}_sentiment"] = sentiment_data
-                state[f"{field}_language"] = detected_lang
+                state[f"{field}_language"] = language_data
                 
-                # Show sentiment feedback for certain fields
-                if field == "Full Name" and sentiment_data["sentiment"] == "positive":
-                    st.success("😊 Great to meet you! Positive energy detected.")
-                elif field == "Years of Experience" and sentiment_data["sentiment"] == "negative":
-                    st.info("💪 Don't worry, every experience counts!")
+                # Enhanced sentiment feedback with confidence
+                if field == "Full Name":
+                    if sentiment_data.get("sentiment") in ["positive", "very positive"]:
+                        confidence = sentiment_data.get("confidence", 0)
+                        st.success(f"😊 Great to meet you! Positive energy detected ({confidence}% confidence)")
+                    elif "excited" in sentiment_data.get("emotions", []):
+                        st.success("🎉 I can sense your excitement! That's wonderful!")
+                        
+                elif field == "Years of Experience":
+                    if sentiment_data.get("sentiment") in ["negative", "very negative"]:
+                        st.info("💪 Don't worry, every experience counts! Focus on your growth.")
+                    elif "confident" in sentiment_data.get("emotions", []):
+                        st.success("🚀 I can sense your confidence in your abilities!")
+                        
+                elif field == "Tech Stack":
+                    if sentiment_data.get("sentiment") in ["positive", "very positive"]:
+                        st.success("💻 Great enthusiasm for technology!")
+                
+                # Language detection feedback
+                if isinstance(language_data, dict) and language_data.get("confidence", 0) > 80:
+                    detected_lang = language_data.get("language", "en")
+                    if detected_lang == "hi":
+                        st.info("🇮🇳 Hindi detected! मैं हिंदी में भी मदद कर सकता हूँ।")
+                    elif detected_lang == "es":
+                        st.info("🇪🇸 Spanish detected! ¡También puedo ayudarte en español!")
+                    elif detected_lang != "en":
+                        st.info(f"🌍 Language detected: {detected_lang}")
             
             store_candidate_data(state, field, user_input)
             state["step"] += 1
 
             if state["step"] < len(FIELDS):
                 next_field = FIELDS[state['step']]
-                
-                # Personalized response based on previous answers
-                user_name = state.get("Full Name", "")
                 base_response = f"Thank you! Now please enter your **{next_field}**:"
                 
-                if ADVANCED_FEATURES and user_name:
-                    sentiment_data = state.get(f"{field}_sentiment", {"sentiment": "neutral"})
-                    detected_lang = state.get(f"{field}_language", "en")
+                # Enhanced personalized response
+                if ADVANCED_FEATURES:
+                    user_data = {k: v for k, v in state.items() if not k.startswith(('step', 'screening_mode', 'technical_interview'))}
+                    sentiment_data = state.get(f"{field}_sentiment", {"sentiment": "neutral", "emotions": []})
+                    language_data = state.get(f"{field}_language", {"language": "en", "confidence": 100})
                     
                     personalized_response = get_personalized_response(
-                        base_response, user_name, sentiment_data, detected_lang
+                        base_response, user_data, sentiment_data, language_data
                     )
                     return personalized_response
                 
@@ -1047,10 +1201,43 @@ if "chat_history" not in st.session_state:
 if "state" not in st.session_state:
     st.session_state.state = {}
 
+# Enhanced sidebar with features showcase
+with st.sidebar:
+    st.markdown('<div class="sidebar-content">', unsafe_allow_html=True)
+    
+    # Features showcase
+    st.markdown("### 🚀 Advanced Features")
+    
+    if ADVANCED_FEATURES:
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    padding: 1rem; border-radius: 10px; margin-bottom: 1rem; color: white;">
+            <h4 style="margin: 0; color: white;">✨ AI-Powered Features Active</h4>
+            <ul style="margin: 0.5rem 0; padding-left: 1.2rem;">
+                <li>🧠 <strong>Sentiment Analysis</strong><br>
+                    <small>Detects emotions & adapts responses</small></li>
+                <li>🌍 <strong>Multilingual Support</strong><br>
+                    <small>Hindi, Spanish, French & more</small></li>
+                <li>🎯 <strong>Personalized Responses</strong><br>
+                    <small>Tailored based on your profile</small></li>
+                <li>🤖 <strong>Google Gemini AI</strong><br>
+                    <small>Smart conversational responses</small></li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div style="background: #f39c12; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; color: white;">
+            <h4 style="margin: 0; color: white;">⚠️ Basic Mode</h4>
+            <p style="margin: 0.5rem 0; font-size: 0.9rem;">
+                Advanced features unavailable. Install required packages for full functionality.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
 # Show candidate info sidebar if data exists
 if st.session_state.state and len(st.session_state.state) > 1:  # More than just 'step'
     with st.sidebar:
-        st.markdown('<div class="sidebar-content">', unsafe_allow_html=True)
         st.markdown("### 📋 Candidate Information")
         
         # Progress indicator
