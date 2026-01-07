@@ -11,6 +11,9 @@ try:
     from langdetect import detect
     import re
     
+    # Import fallback system
+    from fallback_responses import get_fallback_response
+    
     # Load environment variables with explicit path
     load_dotenv('.env')
     
@@ -52,17 +55,24 @@ try:
         # Configure Google GenAI client
         genai_client = genai.Client(api_key=api_key)
         
-        # Test API connection
+        # Test API connection (but don't fail if quota exceeded)
         try:
             test_response = genai_client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents="Test connection"
+                model='gemini-2.0-flash',  # Try a different model first
+                contents="Test"
             )
             print("✅ API connection test successful!")
             AI_AVAILABLE = True
             ADVANCED_FEATURES = True
         except Exception as e:
-            print(f"⚠️ API connection test failed: {e}")
+            error_str = str(e).lower()
+            if "quota" in error_str or "429" in str(e):
+                print("⚠️ API quota exceeded - app will use fallback responses")
+            elif "overloaded" in error_str or "503" in str(e):
+                print("⚠️ API temporarily overloaded - app will retry with fallbacks")
+            else:
+                print(f"⚠️ API connection test failed: {e}")
+            
             # Still set AI_AVAILABLE to True to allow fallback handling
             AI_AVAILABLE = True
             ADVANCED_FEATURES = True
@@ -274,12 +284,12 @@ def get_ai_response(user_message, context=""):
         # Combine system prompt with user message for GenAI
         full_prompt = f"{system_prompt}\n\nUser Question: {translated_message}\n\nAssistant:"
         
-        # Use multiple models with retry logic for better reliability
+        # Use quota-aware model selection (free tier friendly)
         models_to_try = [
-            'gemini-2.5-flash',
-            'gemini-2.0-flash',
-            'gemini-flash-latest',
-            'gemini-2.5-pro'
+            'gemini-2.0-flash',      # Try this first (might have separate quota)
+            'gemini-flash-latest',   # Generic latest model
+            'gemini-2.0-flash-lite', # Lighter version
+            'gemini-2.5-flash'       # Last resort (likely quota exceeded)
         ]
         
         response = None
@@ -329,20 +339,15 @@ def get_ai_response(user_message, context=""):
             print(f"🐛 Error Type: {type(e).__name__}")
         
         # Handle specific error types
-        if "overloaded" in error_msg.lower() or "503" in error_msg or "unavailable" in error_msg.lower():
-            # Model is temporarily overloaded - provide contextual fallback
-            user_lower = user_message.lower()
-            
-            if any(word in user_lower for word in ["excited", "happy", "great", "awesome", "wonderful"]):
-                return "That's wonderful to hear! 🎉 Your enthusiasm is exactly what employers love to see. While our AI is temporarily busy, let me help you get started with our job screening process.\n\n**Type 'start screening' to begin your application!**"
-            elif any(word in user_lower for word in ["nervous", "worried", "scared", "anxious"]):
-                return "It's completely normal to feel that way about job applications! 💪 Take a deep breath - I'm here to guide you through the process step by step.\n\n**Type 'start screening' to begin at your own pace.**"
-            elif "?" in user_message:
-                return "I'd love to help answer that! 🤔 While our AI is temporarily busy, I can still assist you with job applications, resume tips, and career guidance through our structured process.\n\n**Type 'start screening' to get personalized help!**"
-            else:
-                return "I can see you're ready to get started! 🚀 While our AI assistant is temporarily overloaded, I can still help you with job applications and career questions.\n\n**What I can do right now:**\n• Collect your job application information\n• Ask relevant technical questions based on your skills\n• Provide career guidance\n• Help with interview preparation\n\n**Type 'start screening' to begin!**"
-        elif "quota" in error_msg.lower() or "billing" in error_msg.lower():
-            return "I'm a hiring assistant! I can help you with job applications and career questions. However, the AI service is currently unavailable due to quota limits. Please check your Google Cloud billing settings or contact support."
+        if "quota" in error_msg.lower() or "429" in error_msg or "resource_exhausted" in error_msg.lower():
+            # Quota exceeded - use intelligent fallback system
+            return get_fallback_response(user_message, context)
+                
+        elif "overloaded" in error_msg.lower() or "503" in error_msg or "unavailable" in error_msg.lower():
+            # Model overloaded - use intelligent fallback system  
+            return get_fallback_response(user_message, context)
+        elif "quota" in error_msg.lower() or "billing" in error_msg.lower() or "429" in error_msg:
+            return "I'm a hiring assistant! 🤖 We've reached our daily AI quota limit, but I can still help you with our structured job screening process!\n\n**What I can do right now:**\n• Collect your job application information\n• Ask relevant technical questions\n• Provide career guidance\n• Help with interview preparation\n\n**Type 'start screening' to begin!**"
         elif "401" in error_msg or "403" in error_msg or "invalid_api_key" in error_msg.lower():
             return "I'm a hiring assistant! The Google API key appears to be invalid. Please check your API key at https://console.cloud.google.com/apis/credentials and update the .env file."
         elif "404" in error_msg and "model" in error_msg.lower():
