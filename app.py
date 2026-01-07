@@ -695,17 +695,24 @@ def get_bot_response(user_input, state):
             "Have a great day!"
         )
     
-    # Auto-start screening if this is the first interaction
-    if "step" not in state and "screening_mode" not in state:
-        state["screening_mode"] = True
-        state["step"] = 0
-        return get_greeting()
-    
     # Check if user wants to start screening manually
     if user_input.lower() in ['start screening', 'start', 'begin screening', 'apply']:
         state["screening_mode"] = True
         state["step"] = 0
         return "Great! Let's start the screening process.\n\nPlease enter your **Full Name**:"
+    
+    # Auto-start screening only if this is the very first interaction (empty input)
+    if "step" not in state and "screening_mode" not in state and user_input.strip() == "":
+        state["screening_mode"] = True
+        state["step"] = 0
+        return get_greeting()
+    
+    # If it's the first interaction with actual input, respond with AI first
+    if "step" not in state and "screening_mode" not in state and user_input.strip():
+        # Get AI response for the first message
+        ai_response = get_ai_response(user_input, "")
+        # Add suggestion to start screening
+        return f"{ai_response}\n\n💡 **Ready to apply for a job?** Type 'start screening' to begin the application process!"
     
     # If in screening mode, handle the screening flow
     if state.get("screening_mode", False):
