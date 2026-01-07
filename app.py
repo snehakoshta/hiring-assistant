@@ -727,23 +727,33 @@ st.markdown("""
         color: #ffffff !important;
     }
     
+    /* Fix text visibility in main content */
+    .main .element-container p,
+    .main .element-container div,
+    .main .element-container span,
+    .main .element-container h1,
+    .main .element-container h2,
+    .main .element-container h3 {
+        color: #ffffff !important;
+    }
+    
     /* User message with same background as assistant */
     .stChatMessage[data-testid="user-message"] {
-        background: rgba(148, 163, 184, 0.8);
+        background: rgba(59, 130, 246, 0.2) !important;
         backdrop-filter: blur(10px);
-        color: #ffffff;
+        color: #ffffff !important;
         margin-left: 3rem;
-        border: 1px solid rgba(148, 163, 184, 0.3);
+        border: 1px solid rgba(59, 130, 246, 0.3);
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
     }
     
     /* Assistant message with same background */
     .stChatMessage[data-testid="assistant-message"] {
-        background: rgba(148, 163, 184, 0.8);
+        background: rgba(168, 85, 247, 0.2) !important;
         backdrop-filter: blur(10px);
-        color: #ffffff;
+        color: #ffffff !important;
         margin-right: 3rem;
-        border: 1px solid rgba(148, 163, 184, 0.3);
+        border: 1px solid rgba(168, 85, 247, 0.3);
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
     }
     
@@ -801,7 +811,7 @@ st.markdown("""
     }
     
     .candidate-info {
-        background: rgba(247, 250, 252, 0.8);
+        background: rgba(30, 41, 59, 0.9) !important;
         backdrop-filter: blur(5px);
         padding: 1.2rem;
         border-radius: 12px;
@@ -809,6 +819,11 @@ st.markdown("""
         border-left: 4px solid #4299e1;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         transition: transform 0.2s ease;
+        color: #ffffff !important;
+    }
+    
+    .candidate-info strong {
+        color: #60a5fa !important;
     }
     
     .candidate-info:hover {
@@ -817,14 +832,19 @@ st.markdown("""
     
     /* Enhanced progress indicator */
     .progress-container {
-        background: rgba(247, 250, 252, 0.9);
+        background: rgba(30, 41, 59, 0.9) !important;
         backdrop-filter: blur(5px);
         padding: 1.5rem;
         border-radius: 12px;
         margin-bottom: 1.5rem;
         text-align: center;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-        border: 1px solid rgba(226, 232, 240, 0.5);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        color: #ffffff !important;
+    }
+    
+    .progress-container strong {
+        color: #60a5fa !important;
     }
     
     .progress-bar {
