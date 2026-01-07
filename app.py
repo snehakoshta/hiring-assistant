@@ -14,17 +14,24 @@ try:
     # Load environment variables with explicit path
     load_dotenv('.env')
     
-    # Get API key from environment or Streamlit secrets
-    api_key = os.getenv("GOOGLE_API_KEY")
+    # Get API key from environment or Streamlit secrets (prioritize Streamlit secrets for cloud deployment)
+    api_key = None
     
-    # Try Streamlit secrets if env var not found
+    # First try Streamlit secrets (for Streamlit Cloud)
+    try:
+        api_key = st.secrets["GOOGLE_API_KEY"]
+        print("✅ API key loaded from Streamlit secrets")
+    except Exception as e:
+        print(f"⚠️ Streamlit secrets not available: {e}")
+        pass
+    
+    # Fallback to environment variable (for local development)
     if not api_key:
-        try:
-            api_key = st.secrets["GOOGLE_API_KEY"]
-        except:
-            pass
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if api_key:
+            print("✅ API key loaded from environment variable")
     
-    # Debug: Check if we can read the .env file directly (for local development)
+    # Last resort: read directly from .env file (for local development)
     if not api_key:
         try:
             with open('.env', 'r', encoding='utf-8') as f:
@@ -32,16 +39,16 @@ try:
                 if 'GOOGLE_API_KEY=' in content:
                     # Extract API key directly from file
                     api_key = content.split('GOOGLE_API_KEY=')[1].split('\n')[0].strip()
+                    print("✅ API key loaded from .env file")
         except Exception as e:
-            # Don't show error in production, only in development
-            if os.getenv("STREAMLIT_SHARING") != "true":
-                st.error(f"Error reading .env file: {e}")
+            print(f"⚠️ Could not read .env file: {e}")
     
     if not api_key:
-        st.error("❌ GOOGLE_API_KEY not found. Please check your .env file.")
+        st.error("❌ GOOGLE_API_KEY not found. Please configure it in Streamlit Cloud secrets or .env file.")
         AI_AVAILABLE = False
         ADVANCED_FEATURES = False
     else:
+        print(f"✅ API Key found: {api_key[:10]}...")
         # Configure Google GenAI client
         genai_client = genai.Client(api_key=api_key)
         AI_AVAILABLE = True
