@@ -1,0 +1,394 @@
+/* TalentScout Hiring Assistant - Enhanced CSS Styles */
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Global Styles */
+.stApp {
+    background:
+        linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 50%, rgba(51, 65, 85, 0.85) 100%),
+        radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 50%);
+    background-attachment: fixed;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+}
+
+/* Hide Streamlit branding */
+#MainMenu {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+header {
+    visibility: hidden;
+}
+
+/* Force sidebar to be visible */
+[data-testid="stSidebar"] {
+    display: block !important;
+    visibility: visible !important;
+    width: 300px !important;
+    min-width: 300px !important;
+}
+
+/* Sidebar toggle button */
+[data-testid="collapsedControl"] {
+    display: block !important;
+}
+
+/* Main glass container */
+.main>div {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin: 1rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Titles */
+.main-title {
+    text-align: center;
+    background: linear-gradient(135deg, #f8fafc, #cbd5e0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 3rem;
+    font-weight: 800;
+}
+
+.subtitle {
+    text-align: center;
+    color: #e2e8f0;
+    font-size: 1.2rem;
+    margin-bottom: 3rem;
+}
+
+/* Chat messages */
+.stChatMessage {
+    padding: 1.8rem;
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.stChatMessage * {
+    color: #ffffff !important;
+}
+
+.stChatMessage[data-testid="user-message"] {
+    background: rgba(59, 130, 246, 0.25);
+    margin-left: 3rem;
+}
+
+.stChatMessage[data-testid="assistant-message"] {
+    background: rgba(168, 85, 247, 0.25);
+    margin-right: 3rem;
+}
+
+/* Chat input */
+.stChatInput>div {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(15px);
+    border-radius: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.stChatInput input {
+    color: #ffffff !important;
+}
+
+.stChatInput input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Sidebar */
+.css-1d391kg,
+.css-1lcbmhc,
+.css-1outpf7,
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.95));
+    backdrop-filter: blur(15px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.css-1d391kg *,
+.css-1lcbmhc *,
+.css-1outpf7 *,
+[data-testid="stSidebar"] * {
+    color: #f1f5f9 !important;
+}
+
+/* Sidebar content styling */
+[data-testid="stSidebar"]>div {
+    padding-top: 2rem;
+}
+
+/* Sidebar header */
+[data-testid="stSidebar"] .element-container {
+    background: transparent;
+}
+
+/* Sidebar buttons */
+[data-testid="stSidebar"] .stButton>button {
+    background: linear-gradient(135deg, #3b82f6, #7c3aed);
+    color: white !important;
+    border-radius: 8px;
+    border: none;
+    width: 100%;
+    margin: 0.2rem 0;
+}
+
+[data-testid="stSidebar"] .stButton>button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Candidate info styling */
+.candidate-info {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 0.5rem 0;
+    border-left: 3px solid #3b82f6;
+}
+
+/* Buttons */
+.stButton>button {
+    background: linear-gradient(135deg, #3b82f6, #7c3aed);
+    color: white;
+    border-radius: 12px;
+    padding: 0.8rem 2.5rem;
+    font-weight: 600;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.stButton>button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+/* Welcome message styling */
+.welcome-message {
+    background: rgba(168, 85, 247, 0.15);
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    text-align: center;
+}
+
+.welcome-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.welcome-text {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.welcome-description {
+    color: #cbd5e0;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.welcome-prompt {
+    color: #3b82f6;
+    font-weight: 500;
+    font-size: 1.1rem;
+}
+
+/* Progress indicators */
+.progress-container {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 12px;
+    margin: 1rem 0;
+}
+
+/* Sentiment indicators */
+.sentiment-positive {
+    background: rgba(16, 185, 129, 0.2);
+    border-left: 4px solid #10b981;
+}
+
+.sentiment-negative {
+    background: rgba(239, 68, 68, 0.2);
+    border-left: 4px solid #ef4444;
+}
+
+.sentiment-neutral {
+    background: rgba(107, 114, 128, 0.2);
+    border-left: 4px solid #6b7280;
+}
+
+/* Technical questions styling */
+.tech-question {
+    background: rgba(139, 92, 246, 0.15);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin: 1rem 0;
+    border-left: 4px solid #8b5cf6;
+}
+
+.question-number {
+    color: #8b5cf6;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Status indicators */
+.status-complete {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.status-in-progress {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.status-ready {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .main-title {
+        font-size: 2.2rem;
+    }
+
+    .stChatMessage[data-testid="user-message"] {
+        margin-left: 1rem;
+    }
+
+    .stChatMessage[data-testid="assistant-message"] {
+        margin-right: 1rem;
+    }
+
+    [data-testid="stSidebar"] {
+        width: 280px !important;
+        min-width: 280px !important;
+    }
+
+    .main>div {
+        padding: 1.5rem;
+        margin: 0.5rem;
+    }
+}
+
+/* Loading animations */
+.loading-spinner {
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 3px solid #3b82f6;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Enhanced glassmorphism effects */
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Hover effects */
+.hover-lift:hover {
+    transform: translateY(-2px);
+    transition: transform 0.3s ease;
+}
+
+/* Text gradients */
+.gradient-text {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Success/Error states */
+.success-state {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+}
+
+.error-state {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.5);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.7);
+}
