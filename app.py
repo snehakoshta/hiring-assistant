@@ -10,83 +10,483 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Force sidebar to be visible
+st.markdown("""
+<script>
+    // Force sidebar to be visible
+    const sidebar = document.querySelector('[data-testid="stSidebar"]');
+    if (sidebar) {
+        sidebar.style.display = 'block';
+        sidebar.style.visibility = 'visible';
+        sidebar.style.opacity = '1';
+    }
+</script>
+""", unsafe_allow_html=True)
+
 # ---------------- CSS ----------------
 st.markdown("""
 <style>
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Import Professional Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* Global Styles */
+/* Global Professional Styles */
 .stApp {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 50%, rgba(51, 65, 85, 0.85) 100%);
-    font-family: 'Inter', sans-serif;
+    background: 
+        linear-gradient(135deg, rgba(15, 23, 42, 0.97) 0%, rgba(30, 41, 59, 0.95) 50%, rgba(51, 65, 85, 0.93) 100%),
+        radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     min-height: 100vh;
+    color: #f8fafc;
 }
 
-/* Hide Streamlit branding */
+/* Hide Streamlit Branding */
 #MainMenu { visibility: hidden; }
 footer { visibility: hidden; }
 header { visibility: hidden; }
+.stDeployButton { visibility: hidden; }
 
-/* FORCE SIDEBAR VISIBILITY */
+/* Professional Main Container */
+.main .block-container {
+    padding: 2rem 3rem;
+    max-width: none;
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    margin: 1rem;
+}
+
+/* ENHANCED SIDEBAR STYLING - SIMPLE TOGGLE */
 .css-1d391kg, 
 .css-1lcbmhc, 
 .css-1outpf7, 
 .css-k1vhr4,
 .css-17eq0hr,
 [data-testid="stSidebar"],
-section[data-testid="stSidebar"] {
+section[data-testid="stSidebar"],
+.css-1cypcdb,
+.css-1d391kg,
+.css-1lcbmhc {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
-    width: 300px !important;
-    min-width: 300px !important;
-    background: linear-gradient(180deg, rgba(15,23,42,0.98), rgba(30,41,59,0.95)) !important;
-    backdrop-filter: blur(15px) !important;
-    border-right: 1px solid rgba(255,255,255,0.1) !important;
+    width: 320px !important;
+    min-width: 320px !important;
+    max-width: 320px !important;
+    position: relative !important;
+    left: 0 !important;
+    transform: translateX(0) !important;
+    background: 
+        linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.96) 100%) !important;
+    backdrop-filter: blur(20px) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 
+        4px 0 20px rgba(0, 0, 0, 0.3),
+        inset -1px 0 0 rgba(255, 255, 255, 0.05) !important;
+    z-index: 999 !important;
+    transition: transform 0.3s ease-in-out !important;
 }
 
-/* Sidebar text color */
+/* Collapsed sidebar state */
+.sidebar-collapsed .css-1d391kg,
+.sidebar-collapsed .css-1lcbmhc,
+.sidebar-collapsed .css-1outpf7,
+.sidebar-collapsed .css-k1vhr4,
+.sidebar-collapsed .css-17eq0hr,
+.sidebar-collapsed [data-testid="stSidebar"],
+.sidebar-collapsed section[data-testid="stSidebar"] {
+    transform: translateX(-300px) !important;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+    position: fixed !important;
+    top: 20px !important;
+    left: 330px !important;
+    z-index: 1001 !important;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+    transition: all 0.3s ease-in-out !important;
+    color: white !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+}
+
+.sidebar-toggle:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Collapsed state toggle button position */
+.sidebar-collapsed .sidebar-toggle {
+    left: 20px !important;
+}
+
+/* Force sidebar container to be visible */
+.css-1d391kg > div,
+.css-1lcbmhc > div,
+[data-testid="stSidebar"] > div,
+section[data-testid="stSidebar"] > div {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    padding: 1.5rem !important;
+}
+
+/* Ensure sidebar toggle button doesn't hide sidebar */
+.css-1rs6os,
+.css-vk3wp9,
+[data-testid="collapsedControl"] {
+    display: none !important;
+}
+
+/* Professional Sidebar Text */
 [data-testid="stSidebar"] *,
 section[data-testid="stSidebar"] * {
     color: #f1f5f9 !important;
+    font-family: 'Inter', sans-serif !important;
 }
 
-/* Chat messages */
+/* Sidebar Headers */
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3 {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    margin-bottom: 1rem !important;
+    padding-bottom: 0.5rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Professional Cards in Sidebar */
+[data-testid="stSidebar"] .element-container {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    margin: 0.5rem 0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* Sidebar Buttons */
+[data-testid="stSidebar"] .stButton > button {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 0.75rem 1.5rem !important;
+    font-weight: 500 !important;
+    font-size: 0.9rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+    width: 100% !important;
+}
+
+[data-testid="stSidebar"] .stButton > button:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Professional Progress Bar */
+[data-testid="stSidebar"] .stProgress > div > div > div {
+    background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%) !important;
+    border-radius: 6px !important;
+    height: 8px !important;
+}
+
+[data-testid="stSidebar"] .stProgress > div > div {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 6px !important;
+    height: 8px !important;
+}
+
+/* Professional Status Indicators */
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin: 0.25rem 0;
+}
+
+.status-complete {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.status-progress {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.status-ready {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Professional Chat Messages */
 .stChatMessage {
-    padding: 1.5rem;
-    border-radius: 16px;
-    margin-bottom: 1rem;
-    backdrop-filter: blur(6px);
+    padding: 1.5rem !important;
+    border-radius: 16px !important;
+    margin-bottom: 1.5rem !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
 }
 
 .stChatMessage[data-testid="user-message"] {
-    background: rgba(59, 130, 246, 0.25);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1)) !important;
+    border-left: 4px solid #3b82f6 !important;
+    margin-left: 2rem !important;
 }
 
 .stChatMessage[data-testid="assistant-message"] {
-    background: rgba(168, 85, 247, 0.25);
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(147, 51, 234, 0.1)) !important;
+    border-left: 4px solid #a855f7 !important;
+    margin-right: 2rem !important;
 }
 
-/* Buttons */
+/* Professional Chat Input */
+.stChatInput > div {
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(15px) !important;
+    border-radius: 16px !important;
+    border: 2px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+}
+
+.stChatInput input {
+    color: #ffffff !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 1rem !important;
+}
+
+.stChatInput input::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Professional Buttons */
 .stButton > button {
-    background: linear-gradient(135deg, #3b82f6, #7c3aed);
-    color: white;
-    border-radius: 12px;
-    border: none;
-    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 0.75rem 2rem !important;
+    font-weight: 500 !important;
+    font-family: 'Inter', sans-serif !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
 }
 
 .stButton > button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(59,130,246,0.4);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4) !important;
 }
 
-/* Progress bar */
-.stProgress > div > div > div {
-    background: linear-gradient(135deg, #3b82f6, #7c3aed);
+/* Professional Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+}
+
+/* Code and Technical Text */
+code, pre {
+    font-family: 'JetBrains Mono', monospace !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 6px !important;
+    padding: 0.25rem 0.5rem !important;
+}
+
+/* Professional Animations */
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in-right {
+    animation: slideInRight 0.6s ease-out;
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+/* Professional Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    [data-testid="stSidebar"] {
+        width: 300px !important;
+        min-width: 300px !important;
+    }
+    
+    .main .block-container {
+        padding: 1rem 1.5rem;
+        margin: 0.5rem;
+    }
+    
+    .stChatMessage[data-testid="user-message"] {
+        margin-left: 1rem !important;
+    }
+    
+    .stChatMessage[data-testid="assistant-message"] {
+        margin-right: 1rem !important;
+    }
+}
+
+/* Professional Loading States */
+.loading-shimmer {
+    background: linear-gradient(90deg, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Force sidebar visibility on load */
+body {
+    --sidebar-width: 320px;
+}
+
+/* Additional sidebar force rules */
+.stApp > div:first-child {
+    display: flex !important;
+}
+
+.stApp > div:first-child > div:first-child {
+    display: block !important;
+    width: 320px !important;
+    min-width: 320px !important;
 }
 </style>
+
+<script>
+// Enhanced sidebar visibility and toggle script
+function ensureSidebarVisible() {
+    const sidebar = document.querySelector('[data-testid="stSidebar"]');
+    const sidebarSection = document.querySelector('section[data-testid="stSidebar"]');
+    const collapsedControl = document.querySelector('[data-testid="collapsedControl"]');
+    
+    // Hide collapse control
+    if (collapsedControl) {
+        collapsedControl.style.display = 'none';
+    }
+    
+    // Force sidebar visibility
+    [sidebar, sidebarSection].forEach(element => {
+        if (element) {
+            element.style.display = 'block';
+            element.style.visibility = 'visible';
+            element.style.opacity = '1';
+            element.style.width = '320px';
+            element.style.minWidth = '320px';
+        }
+    });
+    
+    // Add sidebar toggle functionality
+    addSidebarToggle();
+}
+
+function addSidebarToggle() {
+    // Remove existing toggle if present
+    const existingToggle = document.querySelector('.sidebar-toggle');
+    if (existingToggle) {
+        existingToggle.remove();
+    }
+    
+    // Create toggle button
+    const toggleButton = document.createElement('button');
+    toggleButton.className = 'sidebar-toggle';
+    toggleButton.innerHTML = '<<';
+    toggleButton.title = 'Toggle Sidebar';
+    
+    // Add click handler
+    toggleButton.addEventListener('click', function() {
+        const body = document.body;
+        const isCollapsed = body.classList.contains('sidebar-collapsed');
+        
+        if (isCollapsed) {
+            body.classList.remove('sidebar-collapsed');
+            toggleButton.innerHTML = '<<';
+            // Store state
+            sessionStorage.setItem('sidebarCollapsed', 'false');
+        } else {
+            body.classList.add('sidebar-collapsed');
+            toggleButton.innerHTML = '>>';
+            // Store state
+            sessionStorage.setItem('sidebarCollapsed', 'true');
+        }
+    });
+    
+    // Add to page
+    document.body.appendChild(toggleButton);
+    
+    // Restore previous state
+    const savedState = sessionStorage.getItem('sidebarCollapsed');
+    if (savedState === 'true') {
+        document.body.classList.add('sidebar-collapsed');
+        toggleButton.innerHTML = '>>';
+    }
+}
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', ensureSidebarVisible);
+
+// Run after Streamlit updates
+setTimeout(ensureSidebarVisible, 100);
+setTimeout(ensureSidebarVisible, 500);
+setTimeout(ensureSidebarVisible, 1000);
+
+// Watch for changes and re-apply
+const observer = new MutationObserver(ensureSidebarVisible);
+observer.observe(document.body, { childList: true, subtree: true });
+</script>
 """, unsafe_allow_html=True)
 
 EXIT_KEYWORDS = ["exit", "quit", "bye", "stop", "end"]
@@ -104,6 +504,8 @@ if "current_question_index" not in st.session_state:
     st.session_state.current_question_index = 0
 if "question_answers" not in st.session_state:
     st.session_state.question_answers = []
+if "sidebar_collapsed" not in st.session_state:
+    st.session_state.sidebar_collapsed = False
 
 # ---------------- SIMPLE SENTIMENT ANALYSIS ----------------
 def analyze_sentiment(text):
@@ -347,14 +749,14 @@ with st.sidebar:
             if i < st.session_state.current_question_index:
                 st.markdown(f"✅ **Q{i+1}:** {question[:40]}...")
             elif i == st.session_state.current_question_index:
-                st.markdown(f"🔄 **Q{i+1}:** {question[:40]}...")
+                st.markdown(f"�i **Q{i+1}:** {question[:40]}...")
             else:
                 st.markdown(f"⏳ **Q{i+1}:** {question[:40]}...")
         
         st.markdown("---")
     
     # Application Status
-    st.markdown("### 📊 Application Status")
+    st.markdown("### � ApPplication Status")
     
     if st.session_state.step >= 8:
         st.success("✅ Application Complete!")
