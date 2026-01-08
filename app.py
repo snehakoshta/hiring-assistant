@@ -490,6 +490,7 @@ observer.observe(document.body, { childList: true, subtree: true });
 """, unsafe_allow_html=True)
 
 EXIT_KEYWORDS = ["exit", "quit", "bye", "stop", "end"]
+GREETING_KEYWORDS = ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "namaste", "greetings", "hola", "bonjour", "guten tag", "ciao", "konnichiwa", "salaam", "shalom"]
 
 # ---------------- SESSION STATE ----------------
 if "chat" not in st.session_state:
@@ -524,6 +525,42 @@ def analyze_sentiment(text):
         return "negative"
     else:
         return "neutral"
+
+# ---------------- GREETING DETECTION ----------------
+def detect_greeting(text):
+    """Detect if user input contains greeting words"""
+    text_lower = text.lower().strip()
+    
+    # Check for exact greetings or greetings at start of message
+    for greeting in GREETING_KEYWORDS:
+        if text_lower == greeting or text_lower.startswith(greeting + " ") or text_lower.startswith(greeting + ","):
+            return True
+    
+    # Also check if greeting is anywhere in short messages (3 words or less)
+    if len(text_lower.split()) <= 3:
+        for greeting in GREETING_KEYWORDS:
+            if greeting in text_lower:
+                return True
+    
+    return False
+
+def get_greeting_response():
+    """Return a random greeting response"""
+    greetings = [
+        "Hello! Nice to meet you! 👋",
+        "Hi there! Great to see you! 😊", 
+        "Hello! Welcome to TalentScout! 🤖",
+        "Hi! Nice to meet you! 👋",
+        "Hello! How are you doing today? 😊",
+        "Hi there! Welcome! 🌟",
+        "Hello! Glad you're here! 👋",
+        "Hi! Hope you're having a great day! ☀️",
+        "Namaste! Welcome to TalentScout! 🙏",
+        "Greetings! Nice to meet you! ✨",
+        "Hello there! Ready to get started? 🚀",
+        "Hi! Wonderful to have you here! 💫"
+    ]
+    return random.choice(greetings)
 
 # ---------------- TECH QUESTIONS ----------------
 TECH_QUESTIONS = {
@@ -612,6 +649,16 @@ if user_input:
         st.session_state.chat.append(("assistant", "🙏 Thank you for your time! Our HR team will contact you soon."))
         st.stop()
 
+    # Check for greetings first
+    if detect_greeting(user_input):
+        greeting_response = get_greeting_response()
+        
+        # If it's just a greeting (not part of answering a question), respond with greeting
+        if st.session_state.step == 0 and len(user_input.strip().split()) <= 3:
+            st.session_state.chat.append(("user", user_input))
+            st.session_state.chat.append(("assistant", f"{greeting_response}\n\nI'm here to help you with our recruitment process. Let's get started!\n\nPlease enter your Full Name:"))
+            st.rerun()
+
     # Simple sentiment analysis
     sentiment = analyze_sentiment(user_input)
     
@@ -690,7 +737,12 @@ if user_input:
             st.session_state.step += 1
 
     elif st.session_state.step >= 8:
-        reply = "✅ Your screening is complete! Feel free to ask me any questions about the company or role while you wait for our response."
+        # Check if it's a greeting during completed state
+        if detect_greeting(user_input) and len(user_input.strip().split()) <= 3:
+            greeting_response = get_greeting_response()
+            reply = f"{greeting_response} ✅ Your screening is complete! Feel free to ask me any questions about the company or role while you wait for our response."
+        else:
+            reply = "✅ Your screening is complete! Feel free to ask me any questions about the company or role while you wait for our response."
     
     # Add sentiment-based modifications
     if sentiment == "negative":
