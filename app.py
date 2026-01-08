@@ -1,81 +1,93 @@
 import streamlit as st
-from textblob import TextBlob
-from langdetect import detect
 import random
 import time
 
-# ---------------- CSS LOADING ----------------
-def load_css():
-    """Load external CSS file or fallback to inline styles"""
-    try:
-        with open('styles.css') as f:
-            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-    except FileNotFoundError:
-        # Fallback inline CSS
-        st.markdown("""
-        <style>
-        /* Import Google Fonts */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
-        /* Global Styles */
-        .stApp {
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 50%, rgba(51, 65, 85, 0.85) 100%);
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-        }
-        
-        /* Hide Streamlit branding */
-        #MainMenu { visibility: hidden; }
-        footer { visibility: hidden; }
-        header { visibility: hidden; }
-        
-        /* Sidebar */
-        [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, rgba(15,23,42,0.98), rgba(30,41,59,0.95));
-            backdrop-filter: blur(15px);
-        }
-        
-        [data-testid="stSidebar"] * {
-            color: #f1f5f9 !important;
-        }
-        
-        /* Chat messages */
-        .stChatMessage {
-            padding: 1.5rem;
-            border-radius: 16px;
-            margin-bottom: 1rem;
-            backdrop-filter: blur(6px);
-        }
-        
-        .stChatMessage[data-testid="user-message"] {
-            background: rgba(59, 130, 246, 0.25);
-        }
-        
-        .stChatMessage[data-testid="assistant-message"] {
-            background: rgba(168, 85, 247, 0.25);
-        }
-        
-        /* Buttons */
-        .stButton > button {
-            background: linear-gradient(135deg, #3b82f6, #7c3aed);
-            color: white;
-            border-radius: 12px;
-            border: none;
-            transition: all 0.3s ease;
-        }
-        
-        .stButton > button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(59,130,246,0.4);
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
 # ---------------- CONFIG ----------------
-st.set_page_config(page_title="TalentScout Hiring Assistant", layout="centered")
+st.set_page_config(
+    page_title="TalentScout Hiring Assistant", 
+    page_icon="🤖",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# Load CSS styles
-load_css()
+# ---------------- CSS ----------------
+st.markdown("""
+<style>
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Global Styles */
+.stApp {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 50%, rgba(51, 65, 85, 0.85) 100%);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+}
+
+/* Hide Streamlit branding */
+#MainMenu { visibility: hidden; }
+footer { visibility: hidden; }
+header { visibility: hidden; }
+
+/* FORCE SIDEBAR VISIBILITY */
+.css-1d391kg, 
+.css-1lcbmhc, 
+.css-1outpf7, 
+.css-k1vhr4,
+.css-17eq0hr,
+[data-testid="stSidebar"],
+section[data-testid="stSidebar"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 300px !important;
+    min-width: 300px !important;
+    background: linear-gradient(180deg, rgba(15,23,42,0.98), rgba(30,41,59,0.95)) !important;
+    backdrop-filter: blur(15px) !important;
+    border-right: 1px solid rgba(255,255,255,0.1) !important;
+}
+
+/* Sidebar text color */
+[data-testid="stSidebar"] *,
+section[data-testid="stSidebar"] * {
+    color: #f1f5f9 !important;
+}
+
+/* Chat messages */
+.stChatMessage {
+    padding: 1.5rem;
+    border-radius: 16px;
+    margin-bottom: 1rem;
+    backdrop-filter: blur(6px);
+}
+
+.stChatMessage[data-testid="user-message"] {
+    background: rgba(59, 130, 246, 0.25);
+}
+
+.stChatMessage[data-testid="assistant-message"] {
+    background: rgba(168, 85, 247, 0.25);
+}
+
+/* Buttons */
+.stButton > button {
+    background: linear-gradient(135deg, #3b82f6, #7c3aed);
+    color: white;
+    border-radius: 12px;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59,130,246,0.4);
+}
+
+/* Progress bar */
+.stProgress > div > div > div {
+    background: linear-gradient(135deg, #3b82f6, #7c3aed);
+}
+</style>
+""", unsafe_allow_html=True)
 
 EXIT_KEYWORDS = ["exit", "quit", "bye", "stop", "end"]
 
@@ -92,85 +104,24 @@ if "current_question_index" not in st.session_state:
     st.session_state.current_question_index = 0
 if "question_answers" not in st.session_state:
     st.session_state.question_answers = []
-if "sentiment_history" not in st.session_state:
-    st.session_state.sentiment_history = []
 
-# ---------------- SENTIMENT ANALYSIS ----------------
+# ---------------- SIMPLE SENTIMENT ANALYSIS ----------------
 def analyze_sentiment(text):
-    """
-    Enhanced sentiment analysis that returns a dictionary with detailed information
-    """
-    try:
-        blob = TextBlob(text)
-        polarity = blob.sentiment.polarity
-        subjectivity = blob.sentiment.subjectivity
-        
-        # Determine sentiment category
-        if polarity > 0.3:
-            sentiment = "very positive"
-        elif polarity > 0.1:
-            sentiment = "positive"
-        elif polarity < -0.3:
-            sentiment = "very negative"
-        elif polarity < -0.1:
-            sentiment = "negative"
-        else:
-            sentiment = "neutral"
-            
-        # Return detailed sentiment data
-        return {
-            "category": sentiment,
-            "polarity": round(polarity, 2),
-            "subjectivity": round(subjectivity, 2),
-            "confidence": abs(polarity),
-            "method": "textblob"
-        }
-    except Exception as e:
-        # Fallback to simple keyword analysis
-        return analyze_sentiment_fallback(text)
-
-def analyze_sentiment_fallback(text):
-    """
-    Fallback sentiment analysis using keyword matching
-    """
+    """Simple keyword-based sentiment analysis"""
     text_lower = text.lower()
     
-    # Positive keywords
-    positive_words = ['happy', 'excited', 'great', 'excellent', 'amazing', 'wonderful', 'good', 'love', 'like']
-    # Negative keywords  
-    negative_words = ['sad', 'angry', 'frustrated', 'disappointed', 'terrible', 'awful', 'bad', 'hate', 'dislike']
+    positive_words = ['happy', 'excited', 'great', 'excellent', 'amazing', 'wonderful', 'good', 'love', 'like', 'awesome', 'fantastic']
+    negative_words = ['sad', 'angry', 'frustrated', 'disappointed', 'terrible', 'awful', 'bad', 'hate', 'dislike', 'worried', 'stressed']
     
     positive_count = sum(1 for word in positive_words if word in text_lower)
     negative_count = sum(1 for word in negative_words if word in text_lower)
     
     if positive_count > negative_count:
-        sentiment = "positive"
-        polarity = 0.3
+        return "positive"
     elif negative_count > positive_count:
-        sentiment = "negative"
-        polarity = -0.3
+        return "negative"
     else:
-        sentiment = "neutral"
-        polarity = 0.0
-    
-    return {
-        "category": sentiment,
-        "polarity": polarity,
-        "subjectivity": 0.5,
-        "confidence": abs(polarity),
-        "method": "keyword_fallback"
-    }
-
-# ---------------- LANGUAGE ----------------
-def detect_language(text):
-    try:
-        return detect(text)
-    except:
-        return "en"
-
-def translate(text, target="en"):
-    # Simple fallback translation - just return original text
-    return text
+        return "neutral"
 
 # ---------------- TECH QUESTIONS ----------------
 TECH_QUESTIONS = {
@@ -180,23 +131,17 @@ TECH_QUESTIONS = {
         "How does garbage collection work in Python?",
         "What are Python generators and when would you use them?"
     ],
-    "django": [
-        "Explain Django ORM.",
-        "What is middleware in Django?",
-        "Difference between function-based and class-based views?",
-        "How does Django handle database migrations?"
+    "javascript": [
+        "Explain closures in JavaScript.",
+        "What is the difference between let, var, and const?",
+        "How does async/await work?",
+        "What is event bubbling?"
     ],
     "react": [
         "What are React hooks?",
         "Explain virtual DOM.",
         "Difference between state and props?",
         "What is JSX and how does it work?"
-    ],
-    "javascript": [
-        "Explain closures in JavaScript.",
-        "What is the difference between let, var, and const?",
-        "How does async/await work?",
-        "What is event bubbling?"
     ],
     "java": [
         "What is the difference between abstract class and interface?",
@@ -209,14 +154,13 @@ TECH_QUESTIONS = {
 def generate_questions(stack):
     questions = []
     for tech in stack:
-        tech = tech.lower()
+        tech = tech.lower().strip()
         if tech in TECH_QUESTIONS:
-            # Get 2 questions per technology
             available_questions = TECH_QUESTIONS[tech]
             num_to_select = min(2, len(available_questions))
             questions.extend(random.sample(available_questions, num_to_select))
     
-    # Add general programming questions if not enough tech-specific ones
+    # Add general questions if not enough tech-specific ones
     if len(questions) < 4:
         general_questions = [
             "Describe your problem-solving approach.",
@@ -226,15 +170,7 @@ def generate_questions(stack):
         ]
         questions.extend(general_questions[:4-len(questions)])
     
-    # Return exactly 4 questions
     return questions[:4]
-
-# ---------------- PERSONALIZED RESPONSE ----------------
-def personalize(msg):
-    name = st.session_state.data.get("name", "")
-    if name:
-        msg = f"{name}, {msg}"
-    return msg
 
 # ---------------- MAIN UI ----------------
 # Title Section
@@ -245,7 +181,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Welcome Message (only show if no chat history)
+# Welcome Message
 if not st.session_state.chat:
     st.markdown("""
     <div style="background: rgba(168, 85, 247, 0.15); padding: 2rem; border-radius: 16px; margin-bottom: 2rem; border: 1px solid rgba(168, 85, 247, 0.3); text-align: center;">
@@ -274,85 +210,76 @@ if user_input:
         st.session_state.chat.append(("assistant", "🙏 Thank you for your time! Our HR team will contact you soon."))
         st.stop()
 
-    # Analyze sentiment
-    sentiment_data = analyze_sentiment(user_input)
-    lang = detect_language(user_input)
-    text = translate(user_input, "en")
-
+    # Simple sentiment analysis
+    sentiment = analyze_sentiment(user_input)
+    
     st.session_state.chat.append(("user", user_input))
 
-    # ---------------- JOB SCREENING FLOW ----------------
+    # ---------------- SCREENING FLOW ----------------
     if st.session_state.step == 0:
-        st.session_state.data["name"] = text
-        reply = f"Nice to meet you, {text}! 😊\n\nPlease provide your email address:"
+        st.session_state.data["name"] = user_input
+        reply = f"Nice to meet you, {user_input}! 😊\n\nPlease provide your email address:"
         st.session_state.step += 1
 
     elif st.session_state.step == 1:
-        st.session_state.data["email"] = text
+        st.session_state.data["email"] = user_input
         reply = "Great! What's your phone number?"
         st.session_state.step += 1
 
     elif st.session_state.step == 2:
-        st.session_state.data["phone"] = text
+        st.session_state.data["phone"] = user_input
         reply = "How many years of professional experience do you have?"
         st.session_state.step += 1
 
     elif st.session_state.step == 3:
-        st.session_state.data["experience"] = text
+        st.session_state.data["experience"] = user_input
         reply = "What position are you applying for?"
         st.session_state.step += 1
 
     elif st.session_state.step == 4:
-        st.session_state.data["position"] = text
+        st.session_state.data["position"] = user_input
         reply = "What's your current location?"
         st.session_state.step += 1
 
     elif st.session_state.step == 5:
-        st.session_state.data["location"] = text
+        st.session_state.data["location"] = user_input
         reply = "Please list your technical skills/stack (comma separated):"
         st.session_state.step += 1
 
     elif st.session_state.step == 6:
-        stack = [s.strip() for s in text.split(",")]
+        stack = [s.strip() for s in user_input.split(",")]
         st.session_state.data["tech_stack"] = stack
         
-        # Generate questions and store them
+        # Generate questions
         st.session_state.tech_questions = generate_questions(stack)
         st.session_state.current_question_index = 0
         st.session_state.question_answers = []
         
-        # Ask the first technical question
+        # Ask first question
         first_question = st.session_state.tech_questions[0]
         reply = f"Perfect! Based on your skills, I'll now ask you some technical questions one by one.\n\n**Question 1 of 4:**\n{first_question}\n\nPlease share your answer:"
         st.session_state.step += 1
 
     elif st.session_state.step == 7:
-        # Handle technical question answers
+        # Handle technical questions
         current_q_index = st.session_state.current_question_index
         current_question = st.session_state.tech_questions[current_q_index]
         
-        # Store the question-answer pair
+        # Store answer
         st.session_state.question_answers.append({
             "question": current_question,
-            "answer": text
+            "answer": user_input
         })
         
         # Move to next question
         st.session_state.current_question_index += 1
         
-        # Check if we have more questions
+        # Check if more questions
         if st.session_state.current_question_index < len(st.session_state.tech_questions):
             next_q_index = st.session_state.current_question_index
             next_question = st.session_state.tech_questions[next_q_index]
             
-            # Provide encouraging feedback and ask next question
-            encouragements = [
-                "Great answer! 👍",
-                "Excellent response! 🌟", 
-                "Well explained! 💯",
-                "Nice insight! ✨"
-            ]
-            
+            encouragements = ["Great answer! 👍", "Excellent response! 🌟", "Well explained! 💯", "Nice insight! ✨"]
             encouragement = random.choice(encouragements)
             reply = f"{encouragement}\n\n**Question {next_q_index + 1} of 4:**\n{next_question}\n\nPlease share your answer:"
         else:
@@ -364,29 +291,14 @@ if user_input:
         reply = "✅ Your screening is complete! Feel free to ask me any questions about the company or role while you wait for our response."
     
     # Add sentiment-based modifications
-    if sentiment_data.get("category") == "negative":
+    if sentiment == "negative":
         reply = "😊 Don't worry. " + reply
-    elif sentiment_data.get("category") == "positive":
+    elif sentiment == "positive":
         reply = "🚀 Awesome! " + reply
 
     # Personalize if we have user data
-    if st.session_state.data:
-        reply = personalize(reply)
-
-    # Store sentiment data safely
-    try:
-        if "sentiment_history" not in st.session_state:
-            st.session_state.sentiment_history = []
-        
-        if sentiment_data:
-            st.session_state.sentiment_history.append({
-                "message": user_input,
-                "sentiment": sentiment_data,
-                "timestamp": time.time()
-            })
-    except Exception as e:
-        # If there's any error, just initialize and continue
-        st.session_state.sentiment_history = []
+    if st.session_state.data.get("name"):
+        reply = f"{st.session_state.data['name']}, {reply}"
 
     st.session_state.chat.append(("assistant", reply))
     st.rerun()
@@ -401,21 +313,21 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
     
-    # Application Progress Section
+    # Progress Section
     if st.session_state.data or st.session_state.step > 0:
         st.markdown("### 📋 Application Progress")
         
-        # Progress indicator
         total_steps = 8
         progress = min(st.session_state.step / total_steps, 1.0)
         progress_percentage = int(progress * 100)
         
         st.progress(progress)
-        st.markdown(f"**{progress_percentage}% Complete** - Step {st.session_state.step} of {total_steps}")
+        st.markdown(f"**{progress_percentage}% Complete**")
+        st.markdown(f"Step {st.session_state.step} of {total_steps}")
         
         st.markdown("---")
     
-    # Candidate Information Section
+    # Candidate Information
     if st.session_state.data:
         st.markdown("### 👤 Candidate Profile")
         
@@ -427,18 +339,33 @@ with st.sidebar:
         
         st.markdown("---")
     
-    # Sentiment Analysis Section
-    if hasattr(st.session_state, 'sentiment_history') and st.session_state.sentiment_history:
-        st.markdown("### 😊 Sentiment Analysis")
+    # Technical Questions Progress
+    if st.session_state.step == 7 and st.session_state.tech_questions:
+        st.markdown("### ❓ Technical Questions")
         
-        # Get the latest sentiment
-        latest_sentiment = st.session_state.sentiment_history[-1]
-        sentiment_data = latest_sentiment["sentiment"]
-        
-        st.markdown(f"**Current Mood:** {sentiment_data['category'].title()}")
-        st.markdown(f"**Confidence:** {sentiment_data['confidence']:.2f}")
+        for i, question in enumerate(st.session_state.tech_questions):
+            if i < st.session_state.current_question_index:
+                st.markdown(f"✅ **Q{i+1}:** {question[:40]}...")
+            elif i == st.session_state.current_question_index:
+                st.markdown(f"🔄 **Q{i+1}:** {question[:40]}...")
+            else:
+                st.markdown(f"⏳ **Q{i+1}:** {question[:40]}...")
         
         st.markdown("---")
+    
+    # Application Status
+    st.markdown("### 📊 Application Status")
+    
+    if st.session_state.step >= 8:
+        st.success("✅ Application Complete!")
+    elif st.session_state.step == 7:
+        st.info("❓ Technical Questions")
+    elif st.session_state.step > 0:
+        st.warning("🔄 In Progress")
+    else:
+        st.info("🚀 Ready to Start")
+    
+    st.markdown("---")
     
     # Restart button
     if st.button("🔄 Restart", use_container_width=True):
