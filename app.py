@@ -515,11 +515,15 @@ def analyze_sentiment(text):
     
     positive_words = ['happy', 'excited', 'great', 'excellent', 'amazing', 'wonderful', 'good', 'love', 'like', 'awesome', 'fantastic']
     negative_words = ['sad', 'angry', 'frustrated', 'disappointed', 'terrible', 'awful', 'bad', 'hate', 'dislike', 'worried', 'stressed']
+    nervous_words = ['nervous', 'anxious', 'worried', 'scared', 'afraid', 'tension', 'stress', 'panic', 'overwhelmed', 'intimidated', 'jittery', 'uneasy', 'apprehensive', 'restless', 'fidgety']
     
     positive_count = sum(1 for word in positive_words if word in text_lower)
     negative_count = sum(1 for word in negative_words if word in text_lower)
+    nervous_count = sum(1 for word in nervous_words if word in text_lower)
     
-    if positive_count > negative_count:
+    if nervous_count > 0:
+        return "nervous"
+    elif positive_count > negative_count:
         return "positive"
     elif negative_count > positive_count:
         return "negative"
@@ -544,8 +548,19 @@ def detect_greeting(text):
     
     return False
 
-def get_greeting_response():
-    """Return a random greeting response"""
+def get_comforting_response():
+    """Return a random comforting response for nervous users"""
+    comforting_messages = [
+        "💙 Don't worry, it's completely normal to feel nervous! Take a deep breath - you've got this! 🌟",
+        "🤗 I understand you're feeling nervous. Remember, this is just a conversation - be yourself and you'll do great! ✨",
+        "💪 Feeling nervous shows you care! That's actually a good sign. Let's take this step by step together. 😊",
+        "🌸 It's okay to feel nervous - everyone does! Just remember, we're here to get to know you better. Relax and be yourself! 💫",
+        "🧘‍♀️ Take a moment to breathe. You're doing great so far! There's no pressure - just be authentic. 🌈",
+        "💝 Nervousness is totally understandable! Think of this as a friendly chat rather than an interview. You're in good hands! 🤝",
+        "🌟 I can sense you're nervous, and that's perfectly fine! Remember, we want you to succeed. Let's go at your pace. 💙",
+        "🤲 Feeling anxious is natural! Just focus on sharing your genuine experiences. There are no wrong answers here! ☀️"
+    ]
+    return random.choice(comforting_messages)
     greetings = [
         "Hello! Nice to meet you! 👋",
         "Hi there! Great to see you! 😊", 
@@ -745,7 +760,10 @@ if user_input:
             reply = "✅ Your screening is complete! Feel free to ask me any questions about the company or role while you wait for our response."
     
     # Add sentiment-based modifications
-    if sentiment == "negative":
+    if sentiment == "nervous":
+        comforting_msg = get_comforting_response()
+        reply = f"{comforting_msg}\n\n{reply}"
+    elif sentiment == "negative":
         reply = "😊 Don't worry. " + reply
     elif sentiment == "positive":
         reply = "🚀 Awesome! " + reply
