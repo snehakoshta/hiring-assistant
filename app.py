@@ -586,12 +586,12 @@ def get_greeting_response():
         "Hello! Nice to meet you! 👋",
         "Hi there! Great to see you! 😊", 
         "Hello! Welcome to TalentScout! 🤖",
-        "Hi! Nice to meet you! �",
+        "Hi! Nice to meet you! 😊",
         "Hello! How are you doing today? 😊",
         "Hi there! Welcome! 🌟",
         "Hello! Glad you're here! 👋",
         "Hi! Hope you're having a great day! ☀️",
-        "Namaste! Welcome to TalentScout! �",
+        "Namaste! Welcome to TalentScout! 🙏",
         "Greetings! Nice to meet you! ✨",
         "Hello there! Ready to get started? 🚀",
         "Hi! Wonderful to have you here! 💫"
@@ -843,14 +843,14 @@ with st.sidebar:
             if i < st.session_state.current_question_index:
                 st.markdown(f"✅ **Q{i+1}:** {question[:40]}...")
             elif i == st.session_state.current_question_index:
-                st.markdown(f"�i **Q{i+1}:** {question[:40]}...")
+                st.markdown(f"🔄 **Q{i+1}:** {question[:40]}...")
             else:
                 st.markdown(f"⏳ **Q{i+1}:** {question[:40]}...")
         
         st.markdown("---")
     
     # Application Status
-    st.markdown("### � ApPplication Status")
+    st.markdown("### 📊 Application Status")
     
     if st.session_state.step >= 8:
         st.success("✅ Application Complete!")
