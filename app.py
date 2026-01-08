@@ -702,6 +702,5 @@ with st.sidebar:
         <p>🤖 TalentScout AI v2.0<br>
         Powered by Advanced AI Technology</p>
     </div>
-    """, unsafe_allow_html=True)
-=======
->>>>>>> fe1a59ba9c2667a39a5b6ad9e9f5635dd302913e
+    """, unsafe_allow_html=True
+
