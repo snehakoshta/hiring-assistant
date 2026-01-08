@@ -579,16 +579,19 @@ def get_comforting_response():
         "🤲 Feeling anxious is natural! Just focus on sharing your genuine experiences. There are no wrong answers here! ☀️"
     ]
     return random.choice(comforting_messages)
+
+def get_greeting_response():
+    """Return a random greeting response"""
     greetings = [
         "Hello! Nice to meet you! 👋",
         "Hi there! Great to see you! 😊", 
         "Hello! Welcome to TalentScout! 🤖",
-        "Hi! Nice to meet you! 👋",
+        "Hi! Nice to meet you! �",
         "Hello! How are you doing today? 😊",
         "Hi there! Welcome! 🌟",
         "Hello! Glad you're here! 👋",
         "Hi! Hope you're having a great day! ☀️",
-        "Namaste! Welcome to TalentScout! 🙏",
+        "Namaste! Welcome to TalentScout! �",
         "Greetings! Nice to meet you! ✨",
         "Hello there! Ready to get started? 🚀",
         "Hi! Wonderful to have you here! 💫"
