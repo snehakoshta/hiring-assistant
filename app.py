@@ -9,12 +9,12 @@ load_dotenv()
 
 # Try to import Google GenAI, if not available, use fallback
 try:
-    import google.generativeai as genai
+    import google.genai as genai
     
     # Configure Google AI
     api_key = st.secrets.get("GOOGLE_API_KEY") or os.getenv("GOOGLE_API_KEY")
     if api_key:
-        genai.configure(api_key=api_key)
+        client = genai.Client(api_key=api_key)
         AI_AVAILABLE = True
     else:
         AI_AVAILABLE = False
@@ -675,9 +675,6 @@ def generate_ai_response(user_message, context=""):
         return None
     
     try:
-        # Create the model
-        model = genai.GenerativeModel('gemini-pro')
-        
         # Create prompt based on context
         if context == "greeting":
             prompt = f"You are a friendly HR assistant. The user said: '{user_message}'. Respond warmly and professionally in a conversational way. Keep it brief and welcoming."
@@ -688,13 +685,24 @@ def generate_ai_response(user_message, context=""):
         else:
             prompt = f"You are a professional HR assistant. Respond to: '{user_message}' in a helpful and friendly way."
         
-        # Generate response
-        response = model.generate_content(prompt)
+        # Generate response using new API
+        response = client.models.generate_content(
+            model='gemini-2.0-flash-exp',
+            contents=prompt
+        )
         return response.text.strip()
         
     except Exception as e:
         print(f"AI Error: {e}")
-        return None
+        # Try fallback models
+        try:
+            response = client.models.generate_content(
+                model='gemini-1.5-flash',
+                contents=prompt
+            )
+            return response.text.strip()
+        except:
+            return None
 
 # ---------------- MAIN UI ----------------
 # Title Section
