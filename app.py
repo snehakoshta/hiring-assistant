@@ -1,6 +1,27 @@
 import streamlit as st
 import random
 import time
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Try to import Google GenAI, if not available, use fallback
+try:
+    import google.generativeai as genai
+    
+    # Configure Google AI
+    api_key = st.secrets.get("GOOGLE_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if api_key:
+        genai.configure(api_key=api_key)
+        AI_AVAILABLE = True
+    else:
+        AI_AVAILABLE = False
+        st.error("⚠️ Google API key not found. Please configure it in Streamlit secrets.")
+except ImportError:
+    AI_AVAILABLE = False
+    st.warning("⚠️ Google AI not available. Using fallback responses.")
 
 # ---------------- CONFIG ----------------
 st.set_page_config(
@@ -647,6 +668,34 @@ def generate_questions(stack):
     
     return questions[:4]
 
+# ---------------- AI RESPONSE GENERATION ----------------
+def generate_ai_response(user_message, context=""):
+    """Generate AI response using Google Gemini"""
+    if not AI_AVAILABLE:
+        return None
+    
+    try:
+        # Create the model
+        model = genai.GenerativeModel('gemini-pro')
+        
+        # Create prompt based on context
+        if context == "greeting":
+            prompt = f"You are a friendly HR assistant. The user said: '{user_message}'. Respond warmly and professionally in a conversational way. Keep it brief and welcoming."
+        elif context == "technical_answer":
+            prompt = f"You are evaluating a technical answer from a job candidate. They answered: '{user_message}'. Provide brief, encouraging feedback (1-2 sentences) and ask them to continue or elaborate if needed."
+        elif context == "general":
+            prompt = f"You are a helpful HR assistant. The user said: '{user_message}'. Respond professionally and helpfully. Keep it conversational and brief."
+        else:
+            prompt = f"You are a professional HR assistant. Respond to: '{user_message}' in a helpful and friendly way."
+        
+        # Generate response
+        response = model.generate_content(prompt)
+        return response.text.strip()
+        
+    except Exception as e:
+        print(f"AI Error: {e}")
+        return None
+
 # ---------------- MAIN UI ----------------
 # Title Section
 st.markdown("""
@@ -687,7 +736,12 @@ if user_input:
 
     # Check for greetings first
     if detect_greeting(user_input):
-        greeting_response = get_greeting_response()
+        # Try AI response first
+        ai_greeting = generate_ai_response(user_input, "greeting")
+        if ai_greeting:
+            greeting_response = ai_greeting
+        else:
+            greeting_response = get_greeting_response()
         
         # If it's just a greeting (not part of answering a question), respond with greeting
         if st.session_state.step == 0 and len(user_input.strip().split()) <= 3:
@@ -764,8 +818,15 @@ if user_input:
             next_q_index = st.session_state.current_question_index
             next_question = st.session_state.tech_questions[next_q_index]
             
-            encouragements = ["Great answer! 👍", "Excellent response! 🌟", "Well explained! 💯", "Nice insight! ✨"]
-            encouragement = random.choice(encouragements)
+            # Try to get AI feedback on the answer
+            ai_feedback = generate_ai_response(user_input, "technical_answer")
+            if ai_feedback:
+                encouragement = ai_feedback
+            else:
+                # Fallback to random encouragements
+                encouragements = ["Great answer! 👍", "Excellent response! 🌟", "Well explained! 💯", "Nice insight! ✨"]
+                encouragement = random.choice(encouragements)
+            
             reply = f"{encouragement}\n\n**Question {next_q_index + 1} of 4:**\n{next_question}\n\nPlease share your answer:"
         else:
             # All questions completed
@@ -775,10 +836,20 @@ if user_input:
     elif st.session_state.step >= 8:
         # Check if it's a greeting during completed state
         if detect_greeting(user_input) and len(user_input.strip().split()) <= 3:
-            greeting_response = get_greeting_response()
+            # Try AI response first
+            ai_greeting = generate_ai_response(user_input, "greeting")
+            if ai_greeting:
+                greeting_response = ai_greeting
+            else:
+                greeting_response = get_greeting_response()
             reply = f"{greeting_response} ✅ Your screening is complete! Feel free to ask me any questions about the company or role while you wait for our response."
         else:
-            reply = "✅ Your screening is complete! Feel free to ask me any questions about the company or role while you wait for our response."
+            # Try AI response for general questions
+            ai_response = generate_ai_response(user_input, "general")
+            if ai_response:
+                reply = f"{ai_response}\n\n✅ Your screening is complete! Feel free to ask me any questions about the company or role while you wait for our response."
+            else:
+                reply = "✅ Your screening is complete! Feel free to ask me any questions about the company or role while you wait for our response."
     
     # Add sentiment-based modifications
     if sentiment == "nervous":
