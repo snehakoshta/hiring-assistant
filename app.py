@@ -85,7 +85,7 @@ def personalize(msg):
     if name:
         msg = f"{name}, {msg}"
     if exp and exp.isdigit() and int(exp) < 2:
-        msg += " 🌱 As an early-career professional, focus on fundamentals."
+        msg += " "
     if stack:
         msg += f" 💻 Tech focus: {', '.join(stack)}"
 
