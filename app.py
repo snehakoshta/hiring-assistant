@@ -650,7 +650,6 @@ with st.sidebar:
             st.session_state.data = {}
             st.session_state.chat = []
             st.rerun()
-<<<<<<< HEAD
     
     with col2:
         if st.button("💾 Export", use_container_width=True, help="Export your application data"):
