@@ -516,13 +516,17 @@ def analyze_sentiment(text):
     positive_words = ['happy', 'excited', 'great', 'excellent', 'amazing', 'wonderful', 'good', 'love', 'like', 'awesome', 'fantastic']
     negative_words = ['sad', 'angry', 'frustrated', 'disappointed', 'terrible', 'awful', 'bad', 'hate', 'dislike', 'worried', 'stressed']
     nervous_words = ['nervous', 'anxious', 'worried', 'scared', 'afraid', 'tension', 'stress', 'panic', 'overwhelmed', 'intimidated', 'jittery', 'uneasy', 'apprehensive', 'restless', 'fidgety']
+    excited_words = ['excited', 'thrilled', 'pumped', 'enthusiastic', 'energetic', 'eager', 'stoked', 'hyped', 'elated', 'ecstatic', 'overjoyed', 'exhilarated']
     
     positive_count = sum(1 for word in positive_words if word in text_lower)
     negative_count = sum(1 for word in negative_words if word in text_lower)
     nervous_count = sum(1 for word in nervous_words if word in text_lower)
+    excited_count = sum(1 for word in excited_words if word in text_lower)
     
     if nervous_count > 0:
         return "nervous"
+    elif excited_count > 0:
+        return "excited"
     elif positive_count > negative_count:
         return "positive"
     elif negative_count > positive_count:
@@ -547,6 +551,20 @@ def detect_greeting(text):
                 return True
     
     return False
+
+def get_excited_response():
+    """Return a random energetic response for excited users"""
+    excited_messages = [
+        "🎉 WOW! I love your energy! That excitement is contagious - let's channel it into this conversation! ⚡",
+        "🚀 AMAZING! Your enthusiasm is fantastic! This is going to be such a great conversation! 🌟",
+        "🔥 YES! I can feel your excitement through the screen! Let's keep this energy going! 💫",
+        "⭐ INCREDIBLE! Your excitement is absolutely wonderful! This positive energy is exactly what we love to see! 🎊",
+        "🎯 FANTASTIC! Your enthusiasm is inspiring! I'm excited to learn more about you too! 🌈",
+        "💥 BOOM! That excitement is PERFECT! You're bringing such great energy to this conversation! ✨",
+        "🎪 WOOHOO! I'm getting excited just from your message! This is going to be an awesome chat! 🎭",
+        "🌟 SPECTACULAR! Your excitement is lighting up the conversation! Let's ride this wave of positive energy! 🏄‍♂️"
+    ]
+    return random.choice(excited_messages)
 
 def get_comforting_response():
     """Return a random comforting response for nervous users"""
@@ -763,6 +781,9 @@ if user_input:
     if sentiment == "nervous":
         comforting_msg = get_comforting_response()
         reply = f"{comforting_msg}\n\n{reply}"
+    elif sentiment == "excited":
+        excited_msg = get_excited_response()
+        reply = f"{excited_msg}\n\n{reply}"
     elif sentiment == "negative":
         reply = "😊 Don't worry. " + reply
     elif sentiment == "positive":
