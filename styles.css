@@ -40,6 +40,132 @@ header {
     display: block !important;
 }
 
+/* ENHANCED SIDEBAR VISIBILITY - Multiple selectors for compatibility */
+.css-1d391kg,
+.css-1lcbmhc,
+.css-1outpf7,
+.css-k1vhr4,
+.css-17eq0hr,
+section[data-testid="stSidebar"],
+[data-testid="stSidebar"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 320px !important;
+    min-width: 320px !important;
+    max-width: 320px !important;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.95)) !important;
+    backdrop-filter: blur(15px) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+    transition: transform 0.3s ease-in-out !important;
+}
+
+/* Collapsed sidebar state */
+.sidebar-collapsed .css-1d391kg,
+.sidebar-collapsed .css-1lcbmhc,
+.sidebar-collapsed .css-1outpf7,
+.sidebar-collapsed .css-k1vhr4,
+.sidebar-collapsed .css-17eq0hr,
+.sidebar-collapsed [data-testid="stSidebar"],
+.sidebar-collapsed section[data-testid="stSidebar"] {
+    transform: translateX(-300px) !important;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+    position: fixed !important;
+    top: 20px !important;
+    left: 330px !important;
+    z-index: 1001 !important;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+    transition: all 0.3s ease-in-out !important;
+    color: white !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+}
+
+.sidebar-toggle:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Collapsed state toggle button position */
+.sidebar-collapsed .sidebar-toggle {
+    left: 20px !important;
+}
+
+/* Sidebar content styling */
+.css-1d391kg *,
+.css-1lcbmhc *,
+.css-1outpf7 *,
+.css-k1vhr4 *,
+.css-17eq0hr *,
+section[data-testid="stSidebar"] *,
+[data-testid="stSidebar"] * {
+    color: #f1f5f9 !important;
+}
+
+/* Hide default Streamlit sidebar toggle */
+.css-1rs6os,
+.css-vk3wp9,
+[data-testid="collapsedControl"] {
+    display: none !important;
+}
+
+/* Custom Sidebar Toggle Button */
+.sidebar-toggle {
+    position: fixed !important;
+    top: 20px !important;
+    left: 310px !important;
+    z-index: 1001 !important;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+    transition: all 0.3s ease-in-out !important;
+    color: white !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+}
+
+.sidebar-toggle:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Collapsed sidebar state */
+.sidebar-collapsed .css-1d391kg,
+.sidebar-collapsed .css-1lcbmhc,
+.sidebar-collapsed .css-1outpf7,
+.sidebar-collapsed .css-k1vhr4,
+.sidebar-collapsed .css-17eq0hr,
+.sidebar-collapsed section[data-testid="stSidebar"],
+.sidebar-collapsed [data-testid="stSidebar"] {
+    transform: translateX(-300px) !important;
+}
+
+/* Collapsed state toggle button position */
+.sidebar-collapsed .sidebar-toggle {
+    left: 20px !important;
+}
+
 /* Main glass container */
 .main>div {
     background: rgba(255, 255, 255, 0.1);
@@ -391,4 +517,66 @@ header {
 
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(59, 130, 246, 0.7);
+}
+
+/* Enhanced Sidebar Toggle Functionality */
+.sidebar-toggle {
+    position: fixed !important;
+    top: 20px !important;
+    left: 330px !important;
+    z-index: 1001 !important;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+    transition: all 0.3s ease-in-out !important;
+    color: white !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+}
+
+.sidebar-toggle:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Collapsed state toggle button position */
+.sidebar-collapsed .sidebar-toggle {
+    left: 20px !important;
+}
+
+/* Sidebar transition animations */
+.css-1d391kg,
+.css-1lcbmhc,
+.css-1outpf7,
+.css-k1vhr4,
+.css-17eq0hr,
+section[data-testid="stSidebar"],
+[data-testid="stSidebar"] {
+    transition: transform 0.3s ease-in-out !important;
+}
+
+/* Collapsed sidebar state */
+.sidebar-collapsed .css-1d391kg,
+.sidebar-collapsed .css-1lcbmhc,
+.sidebar-collapsed .css-1outpf7,
+.sidebar-collapsed .css-k1vhr4,
+.sidebar-collapsed .css-17eq0hr,
+.sidebar-collapsed section[data-testid="stSidebar"],
+.sidebar-collapsed [data-testid="stSidebar"] {
+    transform: translateX(-300px) !important;
+}
+
+/* Hide default Streamlit sidebar controls */
+.css-1rs6os,
+.css-vk3wp9,
+[data-testid="collapsedControl"] {
+    display: none !important;
 }
