@@ -11,6 +11,9 @@ The TalentScout Hiring Assistant is an interactive chatbot system designed to st
 - **Tech_Stack**: The list of technologies and programming languages a candidate is familiar with
 - **Screening_Session**: A complete interaction flow from greeting to technical questions
 - **Candidate_Data**: The information collected about a candidate during screening
+- **Sentiment_Analysis**: The process of detecting emotional tone and mood from candidate responses
+- **Language_Detection**: The automatic identification of the language used in candidate input
+- **Personalized_Response**: A response tailored to the candidate's emotional state and communication style
 
 ## Requirements
 
@@ -71,3 +74,39 @@ The TalentScout Hiring Assistant is an interactive chatbot system designed to st
 3. THE Hiring_Assistant SHALL not skip any required information fields
 4. WHEN the final field is collected, THE Hiring_Assistant SHALL transition to technical question generation
 5. THE Hiring_Assistant SHALL provide a clear conclusion message after presenting technical questions
+
+### Requirement 6: Sentiment Analysis
+
+**User Story:** As a hiring manager, I want the system to analyze candidate sentiment during interactions, so that I can understand their emotional state and engagement level.
+
+#### Acceptance Criteria
+
+1. WHEN a candidate provides any response, THE Hiring_Assistant SHALL analyze the sentiment of their input
+2. THE Hiring_Assistant SHALL classify sentiment as positive, negative, or neutral
+3. WHEN positive sentiment is detected (e.g., "I am very happy"), THE Hiring_Assistant SHALL respond with encouraging and supportive language
+4. WHEN negative sentiment is detected, THE Hiring_Assistant SHALL respond with empathetic and reassuring language
+5. THE Hiring_Assistant SHALL store sentiment analysis results with the candidate data for each interaction
+
+### Requirement 7: Multilingual Support
+
+**User Story:** As a hiring manager, I want the system to support multiple languages, so that I can screen candidates who are more comfortable communicating in their native language.
+
+#### Acceptance Criteria
+
+1. WHEN a candidate provides input in a non-English language, THE Hiring_Assistant SHALL detect the language automatically
+2. THE Hiring_Assistant SHALL support at least English, Spanish, French, German, and Hindi languages
+3. WHEN a language is detected, THE Hiring_Assistant SHALL respond in the same language for the remainder of the session
+4. THE Hiring_Assistant SHALL translate technical questions to the detected language while maintaining technical accuracy
+5. THE Hiring_Assistant SHALL store the detected language preference with the candidate data
+
+### Requirement 8: Personalized Responses
+
+**User Story:** As a candidate, I want the chatbot to respond in a personalized manner based on my communication style and emotional state, so that the interaction feels more natural and engaging.
+
+#### Acceptance Criteria
+
+1. WHEN generating responses, THE Hiring_Assistant SHALL adapt its tone based on the candidate's sentiment analysis
+2. THE Hiring_Assistant SHALL use the candidate's name in responses when appropriate to create a personal connection
+3. WHEN a candidate expresses enthusiasm or positive emotions, THE Hiring_Assistant SHALL mirror that energy in its responses
+4. WHEN a candidate appears nervous or uncertain, THE Hiring_Assistant SHALL provide additional reassurance and encouragement
+5. THE Hiring_Assistant SHALL maintain consistency in personalization throughout the entire screening session

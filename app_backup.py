@@ -1,11 +1,12 @@
 import streamlit as st
 from textblob import TextBlob
 from langdetect import detect
-# from googletrans import Translator  # Removed - not available
+from googletrans import Translator
 import random
 
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="TalentScout Hiring Assistant", layout="centered")
+translator = Translator()
 
 EXIT_KEYWORDS = ["exit", "quit", "bye", "stop", "end"]
 
@@ -17,15 +18,12 @@ if "step" not in st.session_state:
 
 # ---------------- SENTIMENT ----------------
 def analyze_sentiment(text):
-    try:
-        polarity = TextBlob(text).sentiment.polarity
-        if polarity > 0.2:
-            return "positive"
-        elif polarity < -0.2:
-            return "negative"
-        return "neutral"
-    except:
-        return "neutral"
+    polarity = TextBlob(text).sentiment.polarity
+    if polarity > 0.2:
+        return "positive"
+    elif polarity < -0.2:
+        return "negative"
+    return "neutral"
 
 # ---------------- LANGUAGE ----------------
 def detect_language(text):
@@ -35,9 +33,10 @@ def detect_language(text):
         return "en"
 
 def translate(text, target="en"):
-    # Simple fallback translation - just return original text
-    # In a real app, you could use Google Translate API or other services
-    return text
+    try:
+        return translator.translate(text, dest=target).text
+    except:
+        return text
 
 # ---------------- TECH QUESTIONS ----------------
 TECH_QUESTIONS = {
@@ -91,44 +90,15 @@ def personalize(msg):
 
     return msg
 
-# ---------------- AI RESPONSE FUNCTION ----------------
-def get_ai_response(user_input, context=""):
-    """
-    Simple AI response function that can answer any question
-    """
-    user_input_lower = user_input.lower()
-    
-    # General greetings
-    if any(word in user_input_lower for word in ["hello", "hi", "hey", "namaste"]):
-        return "Hello! 👋 I'm TalentScout AI Assistant. I can help you with job applications, career advice, or answer any questions you have. How can I assist you today?"
-    
-    # Career related questions
-    if any(word in user_input_lower for word in ["job", "career", "interview", "resume", "cv"]):
-        return "Great question about careers! 💼 I can help you with job applications, interview preparation, resume tips, and career guidance. What specific aspect would you like to know more about?"
-    
-    # Technical questions
-    if any(word in user_input_lower for word in ["python", "javascript", "react", "django", "sql", "programming", "coding"]):
-        return "Excellent! I love discussing technology. 💻 I can help explain programming concepts, best practices, and technical interview questions. What specific technology or concept would you like to explore?"
-    
-    # General knowledge questions
-    if "?" in user_input:
-        return f"That's an interesting question! 🤔 While I specialize in recruitment and career guidance, I'm happy to help with general questions too. Could you provide more context about '{user_input}'? I'll do my best to assist you."
-    
-    # Default helpful response
-    return "I'm here to help! 😊 I can assist with:\n\n• Job applications and career advice\n• Technical questions and programming concepts\n• Interview preparation\n• Resume and CV guidance\n• General questions and conversations\n\nWhat would you like to know more about?"
-
 # ---------------- CHAT UI ----------------
 st.title("🤖 TalentScout Hiring Assistant")
-st.caption("AI-powered assistant for jobs, careers, and general questions")
-
-# Add info about capabilities
-st.info("💡 **I can help with:** Job applications, career advice, technical questions, interview prep, and general conversations!")
+st.caption("AI-powered initial screening chatbot")
 
 for role, message in st.session_state.chat:
     with st.chat_message(role):
         st.write(message)
 
-user_input = st.chat_input("Ask me anything...")
+user_input = st.chat_input("Type your response...")
 
 if user_input:
     if any(word in user_input.lower() for word in EXIT_KEYWORDS):
@@ -141,15 +111,14 @@ if user_input:
 
     st.session_state.chat.append(("user", user_input))
 
-    # Check if user wants to start job screening
-    if any(word in user_input.lower() for word in ["start screening", "apply", "job application", "screening"]):
-        st.session_state.step = 1
-        reply = "Great! Let's start the job screening process. 🚀\n\nWhat is your full name?"
-    
-    # ---------------- JOB SCREENING FLOW ----------------
+    # ---------------- FLOW ----------------
+    if st.session_state.step == 0:
+        reply = "Hello! 👋 Welcome to TalentScout. What is your full name?"
+        st.session_state.step += 1
+
     elif st.session_state.step == 1:
         st.session_state.data["name"] = text
-        reply = "Nice to meet you! Please provide your email address."
+        reply = "Please provide your email address."
         st.session_state.step += 1
 
     elif st.session_state.step == 2:
@@ -188,40 +157,15 @@ if user_input:
         reply += "\nThank you for completing the screening! 🎉"
         st.session_state.step += 1
 
-    elif st.session_state.step >= 8:
-        reply = "✅ Screening complete. We will get back to you shortly.\n\nFeel free to ask me any other questions!"
-    
-    # ---------------- GENERAL AI RESPONSES ----------------
     else:
-        # Use AI response for general questions
-        reply = get_ai_response(user_input, str(st.session_state.data))
-        
-        # Add screening suggestion if not in screening mode
-        if st.session_state.step == 0:
-            reply += "\n\n💼 **Want to apply for a job?** Just say 'start screening' to begin!"
+        reply = "✅ Screening complete. We will get back to you shortly."
 
-    # Add sentiment-based modifications
     if sentiment == "negative":
         reply = "😊 Don't worry. " + reply
     elif sentiment == "positive":
         reply = "🚀 Awesome! " + reply
 
-    # Personalize if we have user data
-    if st.session_state.data:
-        reply = personalize(reply)
+    reply = personalize(reply)
+    reply = translate(reply, lang)
 
     st.session_state.chat.append(("assistant", reply))
-    st.rerun()
-
-# Show current data in sidebar if available
-if st.session_state.data:
-    with st.sidebar:
-        st.header("📋 Your Information")
-        for key, value in st.session_state.data.items():
-            st.write(f"**{key.title()}:** {value}")
-        
-        if st.button("🔄 Start Over"):
-            st.session_state.step = 0
-            st.session_state.data = {}
-            st.session_state.chat = []
-            st.rerun()
