@@ -173,45 +173,19 @@ streamlit run app.py
 ```
 
 ### Production Deployment
-1. **Streamlit Cloud**: Deploy directly from GitHub repository
-2. **Docker**: Containerize the application for cloud deployment
-3. **Heroku**: Deploy using Heroku's Python buildpack
-4. **AWS/GCP**: Deploy on cloud platforms with proper environment configuration
 
-## 🤝 Contributing
+#### Streamlit Community Cloud (Recommended)
+1. **Push to GitHub**: Commit your code to a GitHub repository
+2. **Deploy on Streamlit Cloud**:
+   - Go to [share.streamlit.io](https://share.streamlit.io)
+   - Connect your GitHub repository
+   - Set main file: `app.py`
+   - Add secrets: `GOOGLE_API_KEY = "your_api_key"`
+   - Deploy!
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+See [STREAMLIT_DEPLOYMENT.md](STREAMLIT_DEPLOYMENT.md) for detailed instructions.
 
-## 📝 License
+#### Other Platforms
+- **AWS/GCP**: Deploy on cloud platforms with proper environment configuration
 
-This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🆘 Support
-
-### Common Issues
-
-**API Key Not Working**
-- Verify your Google Cloud API key is correct
-- Ensure Gemini API is enabled in your Google Cloud project
-- Check API quotas and billing settings
-
-**Dependencies Not Installing**
-- Upgrade pip: `pip install --upgrade pip`
-- Use virtual environment: `python -m venv venv`
-- Install from requirements: `pip install -r requirements.txt`
-
-**Streamlit Not Starting**
-- Check Python version (3.8+ required)
-- Verify Streamlit installation: `streamlit --version`
-- Run with module flag: `python -m streamlit run app.py`
-
-### Contact
-For support and questions, please open an issue in the repository or contact the development team.
-
----
-
-**TalentScout Hiring Assistant** - Revolutionizing recruitment through AI-powered conversation 🚀

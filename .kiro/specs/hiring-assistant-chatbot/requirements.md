@@ -28,17 +28,19 @@ The TalentScout Hiring Assistant is an interactive chatbot system designed to st
 3. WHEN a candidate provides information for a field, THE Hiring_Assistant SHALL store it and request the next field
 4. WHEN all required fields are collected, THE Hiring_Assistant SHALL proceed to technical question generation
 
-### Requirement 2: Technical Question Generation
+### Requirement 2: Technical Question Generation and Conversational Flow
 
-**User Story:** As a hiring manager, I want the system to generate relevant technical questions based on the candidate's tech stack, so that I can assess their technical competency.
+**User Story:** As a hiring manager, I want the system to ask technical questions one by one in a conversational manner, so that I can assess their technical competency through an interactive dialogue.
 
 #### Acceptance Criteria
 
 1. WHEN a candidate provides their tech stack, THE Hiring_Assistant SHALL parse the technologies from the input
 2. WHEN generating questions, THE Hiring_Assistant SHALL create questions for each technology in the candidate's stack
-3. THE Hiring_Assistant SHALL generate a maximum of 5 technical questions per screening session
-4. WHEN presenting questions, THE Hiring_Assistant SHALL format them as a bulleted list
-5. THE Hiring_Assistant SHALL conclude the session after presenting the technical questions
+3. THE Hiring_Assistant SHALL generate a maximum of 4 technical questions per screening session
+4. WHEN presenting questions, THE Hiring_Assistant SHALL ask one question at a time and wait for the candidate's response
+5. WHEN a candidate answers a technical question, THE Hiring_Assistant SHALL acknowledge the response and proceed to the next question
+6. THE Hiring_Assistant SHALL maintain a conversational flow by providing appropriate transitions between questions
+7. THE Hiring_Assistant SHALL conclude the session after all technical questions have been answered or the limit of 4 questions is reached
 
 ### Requirement 3: Data Persistence and State Management
 
@@ -73,7 +75,9 @@ The TalentScout Hiring Assistant is an interactive chatbot system designed to st
 2. WHEN a session begins, THE Hiring_Assistant SHALL start with the greeting message
 3. THE Hiring_Assistant SHALL not skip any required information fields
 4. WHEN the final field is collected, THE Hiring_Assistant SHALL transition to technical question generation
-5. THE Hiring_Assistant SHALL provide a clear conclusion message after presenting technical questions
+5. WHEN in technical question mode, THE Hiring_Assistant SHALL ask questions one by one and wait for responses
+6. THE Hiring_Assistant SHALL track the current question number and ensure no more than 4 questions are asked
+7. THE Hiring_Assistant SHALL provide a clear conclusion message after all technical questions have been answered
 
 ### Requirement 6: Sentiment Analysis
 
@@ -99,7 +103,20 @@ The TalentScout Hiring Assistant is an interactive chatbot system designed to st
 4. THE Hiring_Assistant SHALL translate technical questions to the detected language while maintaining technical accuracy
 5. THE Hiring_Assistant SHALL store the detected language preference with the candidate data
 
-### Requirement 8: Personalized Responses
+### Requirement 8: Conversational Question Management
+
+**User Story:** As a candidate, I want to answer technical questions in a conversational manner one at a time, so that the screening feels more natural and less overwhelming.
+
+#### Acceptance Criteria
+
+1. WHEN technical questions begin, THE Hiring_Assistant SHALL present the first question and wait for a response
+2. WHEN a candidate provides an answer, THE Hiring_Assistant SHALL acknowledge the response before asking the next question
+3. THE Hiring_Assistant SHALL maintain a question counter to track progress (current question number out of maximum 4)
+4. WHEN the 4th question is answered, THE Hiring_Assistant SHALL conclude the technical assessment
+5. THE Hiring_Assistant SHALL provide encouraging feedback between questions to maintain engagement
+6. THE Hiring_Assistant SHALL store each question-answer pair separately in the candidate data
+
+### Requirement 9: Personalized Responses
 
 **User Story:** As a candidate, I want the chatbot to respond in a personalized manner based on my communication style and emotional state, so that the interaction feels more natural and engaging.
 

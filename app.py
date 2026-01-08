@@ -80,7 +80,7 @@ st.set_page_config(
     page_title="TalentScout Hiring Assistant",
     page_icon="🤖",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # ---------------- CUSTOM CSS ----------------
@@ -106,6 +106,19 @@ st.markdown(f"""
 #MainMenu {{ visibility: hidden; }}
 footer {{ visibility: hidden; }}
 header {{ visibility: hidden; }}
+
+/* Force sidebar to be visible */
+[data-testid="stSidebar"] {{
+    display: block !important;
+    visibility: visible !important;
+    width: 300px !important;
+    min-width: 300px !important;
+}}
+
+/* Sidebar toggle button */
+[data-testid="collapsedControl"] {{
+    display: block !important;
+}}
 
 /* Main glass container */
 .main > div {{
@@ -175,13 +188,48 @@ header {{ visibility: hidden; }}
 }}
 
 /* Sidebar */
-.css-1d391kg {{
+.css-1d391kg, .css-1lcbmhc, .css-1outpf7, [data-testid="stSidebar"] {{
     background: linear-gradient(180deg, rgba(15,23,42,0.98), rgba(30,41,59,0.95));
     backdrop-filter: blur(15px);
+    border-right: 1px solid rgba(255,255,255,0.1);
 }}
 
-.css-1d391kg * {{
+.css-1d391kg *, .css-1lcbmhc *, .css-1outpf7 *, [data-testid="stSidebar"] * {{
     color: #f1f5f9 !important;
+}}
+
+/* Sidebar content styling */
+[data-testid="stSidebar"] > div {{
+    padding-top: 2rem;
+}}
+
+/* Sidebar header */
+[data-testid="stSidebar"] .element-container {{
+    background: transparent;
+}}
+
+/* Sidebar buttons */
+[data-testid="stSidebar"] .stButton > button {{
+    background: linear-gradient(135deg, #3b82f6, #7c3aed);
+    color: white !important;
+    border-radius: 8px;
+    border: none;
+    width: 100%;
+    margin: 0.2rem 0;
+}}
+
+[data-testid="stSidebar"] .stButton > button:hover {{
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+}}
+
+/* Candidate info styling */
+.candidate-info {{
+    background: rgba(255,255,255,0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 0.5rem 0;
+    border-left: 3px solid #3b82f6;
 }}
 
 /* Buttons */
@@ -216,7 +264,28 @@ header {{ visibility: hidden; }}
     .stChatMessage[data-testid="user-message"] {{ margin-left: 1rem; }}
     .stChatMessage[data-testid="assistant-message"] {{ margin-right: 1rem; }}
 }}
+
+/* Force sidebar visibility with JavaScript backup */
 </style>
+
+<script>
+// Force sidebar to be visible
+setTimeout(function() {{
+    const sidebar = document.querySelector('[data-testid="stSidebar"]');
+    if (sidebar) {{
+        sidebar.style.display = 'block';
+        sidebar.style.visibility = 'visible';
+        sidebar.style.width = '300px';
+        sidebar.style.minWidth = '300px';
+    }}
+    
+    // Show collapse/expand button
+    const collapseBtn = document.querySelector('[data-testid="collapsedControl"]');
+    if (collapseBtn) {{
+        collapseBtn.style.display = 'block';
+    }}
+}}, 100);
+</script>
 """, unsafe_allow_html=True)
 
 
@@ -227,23 +296,198 @@ if "step" not in st.session_state:
     st.session_state.step = 0
 if "data" not in st.session_state:
     st.session_state.data = {}
+if "tech_questions" not in st.session_state:
+    st.session_state.tech_questions = []
+if "current_question_index" not in st.session_state:
+    st.session_state.current_question_index = 0
+if "question_answers" not in st.session_state:
+    st.session_state.question_answers = []
+if "sentiment_history" not in st.session_state:
+    st.session_state.sentiment_history = []
 
 # ---------------- CONSTANTS ----------------
 EXIT_KEYWORDS = ["bye", "goodbye", "exit", "quit", "thank you", "thanks"]
 
 # ---------------- SENTIMENT ANALYSIS ----------------
 def analyze_sentiment(text):
+    """
+    Enhanced sentiment analysis with multiple fallback methods
+    """
     try:
+        # Primary method: TextBlob
+        from textblob import TextBlob
         blob = TextBlob(text)
         polarity = blob.sentiment.polarity
-        if polarity > 0.1:
-            return "positive"
+        subjectivity = blob.sentiment.subjectivity
+        
+        # Determine sentiment category
+        if polarity > 0.3:
+            sentiment = "very positive"
+        elif polarity > 0.1:
+            sentiment = "positive"
+        elif polarity < -0.3:
+            sentiment = "very negative"
         elif polarity < -0.1:
-            return "negative"
+            sentiment = "negative"
         else:
-            return "neutral"
-    except:
-        return "neutral"
+            sentiment = "neutral"
+            
+        # Store detailed sentiment data
+        sentiment_data = {
+            "category": sentiment,
+            "polarity": round(polarity, 2),
+            "subjectivity": round(subjectivity, 2),
+            "confidence": abs(polarity),
+            "method": "textblob"
+        }
+        
+        return sentiment_data
+        
+    except Exception as e:
+        print(f"TextBlob sentiment analysis failed: {e}")
+        
+        # Fallback method: Simple keyword-based analysis
+        try:
+            return analyze_sentiment_fallback(text)
+        except Exception as e2:
+            print(f"Fallback sentiment analysis failed: {e2}")
+            return {
+                "category": "neutral",
+                "polarity": 0.0,
+                "subjectivity": 0.0,
+                "confidence": 0.0,
+                "method": "default"
+            }
+
+def analyze_sentiment_fallback(text):
+    """
+    Fallback sentiment analysis using keyword matching
+    """
+    text_lower = text.lower()
+    
+    # Positive keywords
+    positive_words = [
+        'happy', 'excited', 'great', 'excellent', 'amazing', 'wonderful', 
+        'fantastic', 'good', 'love', 'like', 'enjoy', 'pleased', 'satisfied',
+        'awesome', 'brilliant', 'perfect', 'outstanding', 'superb', 'thrilled',
+        'delighted', 'glad', 'cheerful', 'optimistic', 'confident', 'proud'
+    ]
+    
+    # Negative keywords
+    negative_words = [
+        'sad', 'angry', 'frustrated', 'disappointed', 'terrible', 'awful',
+        'bad', 'hate', 'dislike', 'worried', 'concerned', 'upset', 'annoyed',
+        'horrible', 'disgusting', 'furious', 'depressed', 'anxious', 'stressed',
+        'confused', 'overwhelmed', 'nervous', 'scared', 'afraid', 'difficult'
+    ]
+    
+    # Very positive keywords
+    very_positive_words = [
+        'ecstatic', 'overjoyed', 'elated', 'euphoric', 'blissful', 'incredible',
+        'phenomenal', 'extraordinary', 'magnificent', 'spectacular'
+    ]
+    
+    # Very negative keywords
+    very_negative_words = [
+        'devastated', 'heartbroken', 'furious', 'enraged', 'disgusted', 
+        'appalled', 'horrified', 'miserable', 'dreadful', 'catastrophic'
+    ]
+    
+    # Count sentiment words
+    positive_count = sum(1 for word in positive_words if word in text_lower)
+    negative_count = sum(1 for word in negative_words if word in text_lower)
+    very_positive_count = sum(1 for word in very_positive_words if word in text_lower)
+    very_negative_count = sum(1 for word in very_negative_words if word in text_lower)
+    
+    # Calculate sentiment
+    total_positive = positive_count + (very_positive_count * 2)
+    total_negative = negative_count + (very_negative_count * 2)
+    
+    if very_positive_count > 0 or total_positive > total_negative + 1:
+        sentiment = "very positive"
+        polarity = 0.7
+    elif total_positive > total_negative:
+        sentiment = "positive"
+        polarity = 0.3
+    elif very_negative_count > 0 or total_negative > total_positive + 1:
+        sentiment = "very negative"
+        polarity = -0.7
+    elif total_negative > total_positive:
+        sentiment = "negative"
+        polarity = -0.3
+    else:
+        sentiment = "neutral"
+        polarity = 0.0
+    
+    confidence = min(abs(total_positive - total_negative) / max(len(text_lower.split()), 1), 1.0)
+    
+    return {
+        "category": sentiment,
+        "polarity": round(polarity, 2),
+        "subjectivity": 0.5,  # Default subjectivity
+        "confidence": round(confidence, 2),
+        "method": "keyword_fallback"
+    }
+
+def get_sentiment_response_modifier(sentiment_data):
+    """Get appropriate response modifier based on sentiment"""
+    sentiment = sentiment_data["category"]
+    confidence = sentiment_data.get("confidence", 0)
+    
+    if sentiment == "very positive":
+        responses = [
+            "🎉 Fantastic! Your enthusiasm is contagious! ",
+            "🌟 Absolutely wonderful! I love your positive energy! ",
+            "🚀 Amazing! Your excitement really shows! ",
+            "✨ Incredible! Your passion is inspiring! "
+        ]
+        return {
+            "prefix": random.choice(responses),
+            "tone": "enthusiastic",
+            "encouragement": "Keep that amazing energy going! "
+        }
+    elif sentiment == "positive":
+        responses = [
+            "😊 Great! I can sense your positive attitude! ",
+            "👍 Excellent! Your optimism is refreshing! ",
+            "🌈 Wonderful! I appreciate your positive outlook! ",
+            "💫 Nice! Your good vibes are appreciated! "
+        ]
+        return {
+            "prefix": random.choice(responses),
+            "tone": "encouraging",
+            "encouragement": "Your positive approach is really helpful! "
+        }
+    elif sentiment == "very negative":
+        responses = [
+            "💪 I understand this might be really challenging for you. ",
+            "🤗 I can see you're going through a tough time. ",
+            "💙 I hear you, and I want to help make this easier. ",
+            "🌟 I know this feels overwhelming, but we'll work through it together. "
+        ]
+        return {
+            "prefix": random.choice(responses),
+            "tone": "very supportive",
+            "encouragement": "Remember, every challenge is an opportunity to grow. You've got this! "
+        }
+    elif sentiment == "negative":
+        responses = [
+            "😊 I understand this might feel a bit challenging. ",
+            "🤝 No worries at all - these things can be tricky sometimes. ",
+            "💭 I can sense some hesitation, and that's completely normal. ",
+            "🌱 It's okay to feel uncertain - that's part of the learning process. "
+        ]
+        return {
+            "prefix": random.choice(responses),
+            "tone": "reassuring",
+            "encouragement": "Take your time, and don't worry - you're doing great! "
+        }
+    else:
+        return {
+            "prefix": "",
+            "tone": "neutral",
+            "encouragement": ""
+        }
 
 # ---------------- LANGUAGE ----------------
 def detect_language(text):
@@ -315,13 +559,13 @@ def generate_questions(stack):
     for tech in stack:
         tech = tech.lower()
         if tech in TECH_QUESTIONS:
-            # Get 3 questions per technology instead of 2
+            # Get 2 questions per technology
             available_questions = TECH_QUESTIONS[tech]
-            num_to_select = min(3, len(available_questions))
+            num_to_select = min(2, len(available_questions))
             questions.extend(random.sample(available_questions, num_to_select))
-    # Ensure minimum 4 questions
+    
+    # Add general programming questions if not enough tech-specific ones
     if len(questions) < 4:
-        # Add general programming questions if not enough tech-specific ones
         general_questions = [
             "Describe your problem-solving approach.",
             "How do you handle debugging complex issues?",
@@ -331,7 +575,8 @@ def generate_questions(stack):
         ]
         questions.extend(general_questions[:4-len(questions)])
     
-    return questions[:6]  # Return up to 6 questions
+    # Return exactly 4 questions
+    return questions[:4]
 
 # ---------------- PERSONALIZED RESPONSE ----------------
 def personalize(msg):
@@ -414,9 +659,16 @@ if user_input:
         st.session_state.chat.append(("assistant", "🙏 Thank you for your time! Our HR team will contact you soon."))
         st.stop()
 
-    sentiment = analyze_sentiment(user_input)
+    sentiment_data = analyze_sentiment(user_input)
     lang = detect_language(user_input)
     text = translate(user_input, "en")
+    
+    # Store sentiment data
+    st.session_state.sentiment_history.append({
+        "message": user_input,
+        "sentiment": sentiment_data,
+        "timestamp": time.time()
+    })
 
     st.session_state.chat.append(("user", user_input))
 
@@ -454,22 +706,76 @@ if user_input:
     elif st.session_state.step == 6:
         stack = [s.strip() for s in text.split(",")]
         st.session_state.data["tech_stack"] = stack
-        questions = generate_questions(stack)
-
-        reply = f"Perfect! Based on your skills, here are some technical questions:\n\n"
-        for i, q in enumerate(questions, 1):
-            reply += f"{i}. {q}\n"
-        reply += "\n🎉 Thank you for completing the screening process! Our team will review your responses and get back to you soon."
+        
+        # Generate questions and store them
+        st.session_state.tech_questions = generate_questions(stack)
+        st.session_state.current_question_index = 0
+        st.session_state.question_answers = []
+        
+        # Ask the first technical question
+        first_question = st.session_state.tech_questions[0]
+        reply = f"Perfect! Based on your skills, I'll now ask you some technical questions one by one.\n\n**Question 1 of 4:**\n{first_question}\n\nPlease share your answer:"
         st.session_state.step += 1
 
-    elif st.session_state.step >= 7:
+    elif st.session_state.step == 7:
+        # Handle technical question answers
+        current_q_index = st.session_state.current_question_index
+        current_question = st.session_state.tech_questions[current_q_index]
+        
+        # Store the question-answer pair
+        st.session_state.question_answers.append({
+            "question": current_question,
+            "answer": text
+        })
+        
+        # Move to next question
+        st.session_state.current_question_index += 1
+        
+        # Check if we have more questions
+        if st.session_state.current_question_index < len(st.session_state.tech_questions):
+            next_q_index = st.session_state.current_question_index
+            next_question = st.session_state.tech_questions[next_q_index]
+            
+            # Provide encouraging feedback and ask next question
+            encouragements = [
+                "Great answer! 👍",
+                "Excellent response! 🌟", 
+                "Well explained! 💯",
+                "Nice insight! ✨",
+                "Good thinking! 🎯"
+            ]
+            
+            encouragement = random.choice(encouragements)
+            reply = f"{encouragement}\n\n**Question {next_q_index + 1} of 4:**\n{next_question}\n\nPlease share your answer:"
+        else:
+            # All questions completed
+            reply = f"Excellent work! 🎉\n\nYou've successfully completed all 4 technical questions. Thank you for taking the time to share your knowledge and experience with us.\n\nOur HR team will review your responses along with your profile and get back to you soon. Feel free to ask me any questions about the company or role while you wait!"
+            st.session_state.step += 1
+
+    elif st.session_state.step >= 8:
         reply = "✅ Your screening is complete! Feel free to ask me any questions about the company or role while you wait for our response."
     
-    # Add sentiment-based modifications
-    if sentiment == "negative":
-        reply = "😊 " + reply
-    elif sentiment == "positive":
-        reply = "🚀 " + reply
+    # Add sentiment-based modifications with enhanced responses
+    sentiment_modifier = get_sentiment_response_modifier(sentiment_data)
+    
+    # Apply sentiment-based prefix
+    if sentiment_modifier["prefix"]:
+        reply = sentiment_modifier["prefix"] + reply
+    
+    # Add encouragement for negative sentiments
+    if sentiment_modifier.get("encouragement") and sentiment_data["category"] in ["negative", "very negative"]:
+        reply += "\n\n" + sentiment_modifier["encouragement"]
+    
+    # Store sentiment data with the conversation
+    if "sentiment_history" not in st.session_state:
+        st.session_state.sentiment_history = []
+    
+    st.session_state.sentiment_history.append({
+        "message": user_input,
+        "sentiment": sentiment_data,
+        "step": st.session_state.step,
+        "timestamp": time.time()
+    })
 
     st.session_state.chat.append(("assistant", reply))
     st.rerun()
@@ -489,26 +795,28 @@ with st.sidebar:
         st.markdown("### 📋 Application Progress")
         
         # Progress indicator with percentage
-        progress = min(st.session_state.step / 7, 1.0)
+        total_steps = 8  # Updated to reflect new step count
+        progress = min(st.session_state.step / total_steps, 1.0)
         progress_percentage = int(progress * 100)
         
         st.progress(progress)
         st.markdown(f"""
         <div style="text-align: center; margin: 0.5rem 0;">
             <strong style="color: #3b82f6;">{progress_percentage}% Complete</strong><br>
-            <small style="color: #64748b;">Step {st.session_state.step} of 7</small>
+            <small style="color: #64748b;">Step {st.session_state.step} of {total_steps}</small>
         </div>
         """, unsafe_allow_html=True)
         
         # Progress steps with status
         steps = [
-            "👤 Personal Info",
-            "📧 Contact Details", 
-            "📱 Phone Number",
+            "� CPersonal Info",
+            "� PContact Details", 
+            "� Phpone Number",
             "💼 Experience",
             "🎯 Position",
-            "📍 Location",
+            "� Leocation",
             "💻 Tech Skills",
+            "❓ Technical Questions",
             "✅ Complete"
         ]
         
@@ -592,18 +900,101 @@ with st.sidebar:
             </div>
             """, unsafe_allow_html=True)
         
+        # Technical Questions Progress (if in question phase)
+        if st.session_state.step == 7 and st.session_state.tech_questions:
+            st.markdown("### ❓ Technical Questions")
+            
+            for i, question in enumerate(st.session_state.tech_questions):
+                if i < st.session_state.current_question_index:
+                    # Completed question
+                    answer = st.session_state.question_answers[i]['answer'][:50] + "..." if len(st.session_state.question_answers[i]['answer']) > 50 else st.session_state.question_answers[i]['answer']
+                    st.markdown(f"✅ **Q{i+1}:** {question[:40]}...")
+                    st.markdown(f"   *Answer: {answer}*")
+                elif i == st.session_state.current_question_index:
+                    # Current question
+                    st.markdown(f"🔄 **Q{i+1}:** {question[:40]}...")
+                    st.markdown(f"   *Currently answering...*")
+                else:
+                    # Upcoming question
+                    st.markdown(f"⏳ **Q{i+1}:** {question[:40]}...")
+        
+        st.markdown("---")
+    
+    # Sentiment Analysis Section
+    if hasattr(st.session_state, 'sentiment_history') and st.session_state.sentiment_history:
+        st.markdown("### 😊 Sentiment Analysis")
+        
+        # Get the latest sentiment
+        latest_sentiment = st.session_state.sentiment_history[-1]
+        sentiment_data = latest_sentiment["sentiment"]
+        
+        # Display current sentiment
+        sentiment_color = {
+            "very positive": "#10b981",
+            "positive": "#3b82f6", 
+            "neutral": "#6b7280",
+            "negative": "#f59e0b",
+            "very negative": "#ef4444"
+        }
+        
+        color = sentiment_color.get(sentiment_data["category"], "#6b7280")
+        
+        st.markdown(f"""
+        <div style="background: {color}20; padding: 1rem; border-radius: 8px; border-left: 4px solid {color};">
+            <strong>Current Mood:</strong> {sentiment_data["category"].title()}<br>
+            <strong>Confidence:</strong> {sentiment_data["confidence"]:.2f}<br>
+            <strong>Method:</strong> {sentiment_data.get("method", "textblob").title()}
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Show sentiment trend if we have multiple entries
+        if len(st.session_state.sentiment_history) > 1:
+            st.markdown("#### 📈 Sentiment Trend")
+            
+            # Show last 3 sentiments
+            recent_sentiments = st.session_state.sentiment_history[-3:]
+            for i, entry in enumerate(recent_sentiments):
+                sentiment = entry["sentiment"]["category"]
+                emoji = {
+                    "very positive": "🎉",
+                    "positive": "😊",
+                    "neutral": "😐",
+                    "negative": "😔",
+                    "very negative": "😢"
+                }
+                
+                st.markdown(f"{emoji.get(sentiment, '😐')} {sentiment.title()}")
+        
         st.markdown("---")
     
     # Application Status
     st.markdown("### 📊 Application Status")
     
-    if st.session_state.step >= 7:
+    if st.session_state.step >= 8:
         st.markdown("""
         <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 1rem; border-radius: 8px; text-align: center; color: white;">
             <h4 style="margin: 0;">✅ Application Complete!</h4>
             <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">Our HR team will review your profile</p>
         </div>
         """, unsafe_allow_html=True)
+    elif st.session_state.step == 7:
+        # Show technical question progress
+        if st.session_state.tech_questions:
+            current_q = st.session_state.current_question_index + 1
+            total_q = len(st.session_state.tech_questions)
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); padding: 1rem; border-radius: 8px; text-align: center; color: white;">
+                <h4 style="margin: 0;">❓ Technical Questions</h4>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">Question {current_q} of {total_q}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); padding: 1rem; border-radius: 8px; text-align: center; color: white;">
+                <h4 style="margin: 0;">❓ Technical Assessment</h4>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">Preparing questions...</p>
+            </div>
+            """, unsafe_allow_html=True)
     elif st.session_state.step > 0:
         st.markdown("""
         <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 1rem; border-radius: 8px; text-align: center; color: white;">
@@ -649,4 +1040,9 @@ with st.sidebar:
             st.session_state.step = 0
             st.session_state.data = {}
             st.session_state.chat = []
+            st.session_state.tech_questions = []
+            st.session_state.current_question_index = 0
+            st.session_state.question_answers = []
+            if hasattr(st.session_state, 'sentiment_history'):
+                st.session_state.sentiment_history = []
             st.rerun()
